@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"sync"
-	"vmware-exporter/vmware/esxcli"
+	"github.com/prezhdarov/vmware-exporter/vmware/esxcli"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"

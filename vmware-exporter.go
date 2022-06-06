@@ -8,8 +8,8 @@ import (
 	"github.com/prezhdarov/prometheus-exporter/config"
 	"github.com/prezhdarov/prometheus-exporter/exporter"
 
-	vmware "vmware-exporter/vmware/api"
-	vmwareCollectors "vmware-exporter/vmware/collectors"
+	"github.com/prezhdarov/vmware-exporter/vmware/api"
+	vmwareCollectors "github.com/prezhdarov/vmware-exporter/vmware/collectors"
 
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/common/promlog"
