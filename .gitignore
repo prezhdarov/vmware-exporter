@@ -1,0 +1,13 @@
+# Environments
+.DS_Store
+local/
+.env
+.venv
+env/
+venv/
+old/
+test/
+ENV/
+env.bak/
+venv.bak/
+
