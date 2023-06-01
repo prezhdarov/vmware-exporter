@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+
 	"github.com/prezhdarov/vmware-exporter/vmware/esxcli"
 
 	"github.com/go-kit/log"

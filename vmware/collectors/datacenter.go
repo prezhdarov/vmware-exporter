@@ -44,13 +44,25 @@ func (c *datacenterCollector) Update(ch chan<- prometheus.Metric, namespace stri
 
 	}
 
+	ch <- prometheus.MustNewConstMetric(
+		prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, "vcenter", "info"),
+			"This is basic vcenter info", nil,
+			map[string]string{
+				"version": loginData["client"].(*vim25.Client).ServiceContent.About.Version,
+				"build":   loginData["client"].(*vim25.Client).ServiceContent.About.Build,
+				"patch":   loginData["client"].(*vim25.Client).ServiceContent.About.PatchLevel,
+				"vcenter": loginData["target"].(string)},
+		), prometheus.GaugeValue, 1.0,
+	)
+
 	for _, datacenter := range datacenters {
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(
 				prometheus.BuildFQName(namespace, datacenterSubsystem, "info"),
 				"This is basic datacenter info to be used for parent reference", nil,
-				map[string]string{"mo": datacenter.Self.Value, "dc": datacenter.Name,
+				map[string]string{"dcmo": datacenter.Self.Value, "dc": datacenter.Name,
 					"vcenter": loginData["target"].(string)},
 			), prometheus.GaugeValue, 1.0,
 		)
@@ -76,7 +88,7 @@ func (c *datacenterCollector) Update(ch chan<- prometheus.Metric, namespace stri
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, "folder", "info"),
 					"This is basic datacenter info to be used for parent reference", nil,
-					map[string]string{"mo": folder.Self.Value, "dc": folder.Name, "parent": folder.Parent.Value,
+					map[string]string{"foldermo": folder.Self.Value, "dc": folder.Name, "dcmo": folder.Parent.Value,
 						"vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, 1.0,
 			)

@@ -30,7 +30,7 @@ var (
 		"mem.entitlement.average", "mem.active.average", "mem.shared.average", "mem.vmmemctl.average",
 		"mem.swapped.average", "mem.consumed.average", "sys.uptime.latest",
 	} //Common or generic counters that need not be instanced
-	iHostCounters = []string{"net.bytesRx.average", "net.bytesTx.average",
+	iHostCounters = []string{"net.bytesRx.average", "net.bytesTx.average", "net.errorsRx.summation", "net.errorsTx.summation", "net.droppedRx.summation", "net.droppedTx.summation",
 		"datastore.read.average", "datastore.write.average", "datastore.numberReadAveraged.average",
 		"datastore.numberWriteAveraged.average", "datastore.totalReadLatency.average", "datastore.totalWriteLatency.average",
 	} //Counters that come in multiple instances
@@ -84,7 +84,7 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, hostSubsystem, "info"),
 					"Basic host info", nil,
-					map[string]string{"mo": host.Self.Value, "host": host.Summary.Config.Name, "parent": host.Parent.Value,
+					map[string]string{"hostmo": host.Self.Value, "host": host.Summary.Config.Name, "cmo": host.Parent.Value,
 						"vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, 1.0,
 			)
@@ -93,7 +93,7 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, hostSubsystem, "hardware_info"),
 					"Hardware information", nil,
-					map[string]string{"mo": host.Self.Value, "host": host.Summary.Config.Name, "vendor": host.Summary.Hardware.Vendor,
+					map[string]string{"hostmo": host.Self.Value, "host": host.Summary.Config.Name, "vendor": host.Summary.Hardware.Vendor,
 						"model": host.Summary.Hardware.Model, "cpu_type": host.Summary.Hardware.CpuModel, "vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, 1.0,
 			)
@@ -102,13 +102,13 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, hostSubsystem, "software_info"),
 					"Software Information", nil,
-					map[string]string{"mo": host.Self.Value, "host": host.Summary.Config.Name, "software": host.Summary.Config.Product.Name,
+					map[string]string{"hostmo": host.Self.Value, "host": host.Summary.Config.Name, "software": host.Summary.Config.Product.Name,
 						"version": host.Summary.Config.Product.Version, "build": host.Summary.Config.Product.Build,
 						"vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, 1.0,
 			)
 
-			hostLabels := map[string]string{"mo": host.Self.Value, "host": host.Summary.Config.Name, "vcenter": loginData["target"].(string)}
+			hostLabels := map[string]string{"hostmo": host.Self.Value, "host": host.Summary.Config.Name, "vcenter": loginData["target"].(string)}
 
 			ch <- prometheus.MustNewConstMetric(
 				prometheus.NewDesc(

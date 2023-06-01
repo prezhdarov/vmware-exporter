@@ -8,8 +8,9 @@ import (
 	"github.com/prezhdarov/prometheus-exporter/config"
 	"github.com/prezhdarov/prometheus-exporter/exporter"
 
-	"github.com/prezhdarov/vmware-exporter/vmware/api"
 	vmwareCollectors "github.com/prezhdarov/vmware-exporter/vmware/collectors"
+
+	vmware "github.com/prezhdarov/vmware-exporter/vmware/api"
 
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/common/promlog"
@@ -31,20 +32,6 @@ var (
 	logFormat = flag.String("log.format", "logfmt", "Log output format. Available options are: logfmt and json")
 )
 
-func setLogger(lf, ll *string) *promlog.Config {
-	promlogFormat := &promlog.AllowedFormat{}
-	promlogFormat.Set(*lf)
-
-	promlogLevel := &promlog.AllowedLevel{}
-	promlogLevel.Set(*ll)
-
-	promlogConfig := &promlog.Config{}
-	promlogConfig.Format = promlogFormat
-	promlogConfig.Level = promlogLevel
-
-	return promlogConfig
-}
-
 func usage() {
 	const s = `
 vmware-exporter collects metrics data from VMware vCenter. 
@@ -58,7 +45,7 @@ func main() {
 	flag.Usage = usage
 	config.Parse()
 
-	logger := promlog.New(setLogger(logFormat, logLevel))
+	logger := promlog.New(config.SetLogger(logFormat, logLevel))
 
 	level.Debug(logger).Log("disable exporter target is", disableExporterTarget)
 
@@ -83,9 +70,9 @@ func main() {
 
 	level.Info(logger).Log("msg", "listening on", "address", listenAddress)
 
-	server := &http.Server{Addr: *listenAddress}
+	server := &http.Server{}
 
-	if err := web.ListenAndServe(server, "", logger); err != nil {
+	if err := web.ListenAndServe(server, config.WebConfig(listenAddress), logger); err != nil {
 		level.Error(logger).Log("err", err)
 		os.Exit(1)
 	}

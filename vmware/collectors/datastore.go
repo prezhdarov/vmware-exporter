@@ -53,8 +53,8 @@ func (c *datastoreCollector) Update(ch chan<- prometheus.Metric, namespace strin
 			prometheus.NewDesc(
 				prometheus.BuildFQName(namespace, datastoreSubsystem, "info"),
 				"This is datastore info to be used for parent reference", nil,
-				map[string]string{"mo": datastore.Summary.Datastore.Value, "ds": datastore.Summary.Name, "type": datastore.Summary.Type,
-					"pfinstance": re.ReplaceAllString(datastore.Summary.Url, ""), "parent": datastore.Parent.Value, "vcenter": loginData["target"].(string)},
+				map[string]string{"dsmo": datastore.Summary.Datastore.Value, "ds": datastore.Summary.Name, "type": datastore.Summary.Type,
+					"pfinstance": re.ReplaceAllString(datastore.Summary.Url, ""), "foldermo": datastore.Parent.Value, "vcenter": loginData["target"].(string)},
 			), prometheus.GaugeValue, 1.0,
 		)
 
@@ -62,7 +62,7 @@ func (c *datastoreCollector) Update(ch chan<- prometheus.Metric, namespace strin
 			prometheus.NewDesc(
 				prometheus.BuildFQName(namespace, datastoreSubsystem, "capacity"),
 				"Datastore capacity in bytes", nil,
-				map[string]string{"mo": datastore.Summary.Datastore.Value, "ds": datastore.Summary.Name,
+				map[string]string{"dsmo": datastore.Summary.Datastore.Value, "ds": datastore.Summary.Name,
 					"vcenter": loginData["target"].(string)},
 			), prometheus.GaugeValue, float64(datastore.Summary.Capacity),
 		)
@@ -71,7 +71,7 @@ func (c *datastoreCollector) Update(ch chan<- prometheus.Metric, namespace strin
 			prometheus.NewDesc(
 				prometheus.BuildFQName(namespace, datastoreSubsystem, "free"),
 				"Datastore available space in bytes", nil,
-				map[string]string{"mo": datastore.Summary.Datastore.Value, "ds": datastore.Summary.Name,
+				map[string]string{"dsmo": datastore.Summary.Datastore.Value, "ds": datastore.Summary.Name,
 					"vcenter": loginData["target"].(string)},
 			), prometheus.GaugeValue, float64(datastore.Summary.FreeSpace),
 		)

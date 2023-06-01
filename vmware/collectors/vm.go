@@ -81,23 +81,23 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, vmSubsystem, "info"),
 					"This is basic vm info to be used for parent reference", nil,
-					map[string]string{"mo": vm.Self.Value, "vm": vm.Summary.Config.Name, "host": vm.Runtime.Host.Value, "vcenter": loginData["target"].(string)},
+					map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": vm.Runtime.Host.Value, "vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, 1.0,
 			)
 
-			vmLabels := map[string]string{"mo": vm.Self.Value, "vm": vm.Summary.Config.Name, "vcenter": loginData["target"].(string)}
+			//vmLabels := map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "vcenter": loginData["target"].(string)}
 
 			ch <- prometheus.MustNewConstMetric(
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, vmSubsystem, "cpu_corecount"),
-					"Number of virtual CPUs", nil, vmLabels,
+					"Number of virtual CPUs", nil, map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": vm.Runtime.Host.Value, "vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, float64(vm.Summary.Config.NumCpu),
 			)
 
 			ch <- prometheus.MustNewConstMetric(
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, vmSubsystem, "mem_capacity"),
-					"Virtual memory configured in MB", nil, vmLabels,
+					"Virtual memory configured in MB", nil, map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": vm.Runtime.Host.Value, "vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, float64(vm.Summary.Config.MemorySizeMB),
 			)
 
@@ -107,8 +107,8 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 					prometheus.NewDesc(
 						prometheus.BuildFQName(namespace, vmSubsystem, "datastore_capacity_used"),
 						"Virtual memory configured in MB", nil,
-						map[string]string{"mo": vm.Self.Value, "vm": vm.Summary.Config.Name,
-							"vcenter": loginData["target"].(string), "ds": datastore.Datastore.Value},
+						map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name,
+							"vcenter": loginData["target"].(string), "dsmo": datastore.Datastore.Value},
 					), prometheus.GaugeValue, float64(datastore.Committed),
 				)
 			}

@@ -104,13 +104,15 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 
 	for _, metric := range metrics {
 
-		labelMap := map[string]string{"mo": metric.Entity.Value, "vcenter": vcenter}
+		labelMap := map[string]string{"vcenter": vcenter}
 
 		switch {
 		case moType == "HostSystem":
 			labelMap["host"] = targetNames[metric.Entity.Value]
+			labelMap["hostmo"] = metric.Entity.Value
 		case moType == "VirtualMachine":
 			labelMap["vm"] = targetNames[metric.Entity.Value]
+			labelMap["vmmo"] = metric.Entity.Value
 		}
 
 		for _, value := range metric.Value {
