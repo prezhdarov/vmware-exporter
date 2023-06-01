@@ -22,12 +22,12 @@ import (
 )
 
 var (
-	vmwUser     = flag.String("vmware.username", "", "Username to login to Veeam Enterprsie Manager")
+	vmwUser     = flag.String("vmware.username", "", "Username to login to vCenter server")
 	vmwPasswd   = flag.String("vmware.password", "", "Password for the user above")
-	vCenter     = flag.String("vmware.vcenter", "", "Veeam Enterprise Manager address in host:port format.")
+	vCenter     = flag.String("vmware.vcenter", "", "vCenter server address in host:port format. This is not the vCenter Management Console")
 	vmwSchema   = flag.String("vmware.schema", "https", "Use HTTP or HTTPS")
-	vmwSSL      = flag.Bool("vmware.ssl", false, "Verify Veeam Enterprise Manager SSL or trust")
-	vmwInterval = flag.Int("vmware.interval", 20, "Time in seconds to wait for forti manager to reply")
+	vmwSSL      = flag.Bool("vmware.ssl", false, "Verify vCenter SSL or trust")
+	vmwInterval = flag.Int("vmware.interval", 20, "Collected stats granularity. Default is every 20s.")
 
 	//ldWriteMtx = sync.Mutex{}
 )
@@ -132,7 +132,7 @@ func (vm *VMware) Get(loginData, extraConfig map[string]interface{}) (interface{
 	return &body, nil
 }
 
-//request is where the http magic happens
+// request is where the http magic happens
 func request(method, url string, headers map[string]string, login bool) (int, string, []byte, error) {
 
 	client := &http.Client{

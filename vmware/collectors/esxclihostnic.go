@@ -133,7 +133,7 @@ func esxcliHostNicInfo(ch chan<- prometheus.Metric, logger log.Logger, ctx conte
 
 		//	go func(nic NicListInfo) {
 
-		//defer wg.Done()
+		// defer wg.Done()
 		esxcliGetNicInfo(ch, logger, ctx, client, request,
 			&host.Self.Value, &host.Name, namespace, subsystem, &nic,
 			&driverMutex, &firmwareMutex, driverMap, firmwareMap)
@@ -141,7 +141,7 @@ func esxcliHostNicInfo(ch chan<- prometheus.Metric, logger log.Logger, ctx conte
 		//	}(nic)
 	}
 
-	//wg.Wait()
+	// wg.Wait()
 
 }
 

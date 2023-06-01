@@ -137,11 +137,11 @@ func esxcliStorageDriverInfo(ch chan<- prometheus.Metric, logger log.Logger, ctx
 		return
 	}
 
-	//level.Debug(logger).Log("msg", fmt.Sprintf("we have SOAP from %s", request.This))
+	// level.Debug(logger).Log("msg", fmt.Sprintf("we have SOAP from %s", request.This))
 
 	for _, storage := range data.DataObject {
 
-		//	level.Debug(logger).Log("msg", fmt.Sprintf("procesing entry for %s with storage vendor %s, model %s (revision: %s", host.Name, strings.TrimSpace(storage.Vendor), storage.Model, storage.Revision))
+		// level.Debug(logger).Log("msg", fmt.Sprintf("procesing entry for %s with storage vendor %s, model %s (revision: %s", host.Name, strings.TrimSpace(storage.Vendor), storage.Model, storage.Revision))
 
 		addEntry := false
 

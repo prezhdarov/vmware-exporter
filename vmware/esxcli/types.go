@@ -5,7 +5,7 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 )
 
-//The soap types......
+// The soap types......
 type ReflectManagedMethodExecuterSoapArgument struct {
 	types.DynamicData
 
@@ -45,7 +45,7 @@ type ExecuteSoapBody struct {
 	Fault_ *soap.Fault
 }
 
-//The DTM thingies
+// The DTM thingies
 type InternalDynamicTypeManager struct {
 	types.ManagedObjectReference
 }
@@ -64,7 +64,7 @@ type RetrieveDynamicTypeManagerBody struct {
 	Fault_ *soap.Fault
 }
 
-//The MME thingies
+// The MME thingies
 type ReflectManagedMethodExecuter struct {
 	types.ManagedObjectReference
 }
