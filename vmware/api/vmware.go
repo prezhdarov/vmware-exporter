@@ -53,7 +53,7 @@ func Load(logger log.Logger) {
 
 }
 
-func (vm *VMware) Login(target string) (map[string]interface{}, error) {
+func (vm *VMware) Login(target string, logger log.Logger) (map[string]interface{}, error) {
 
 	loginData := make(map[string]interface{}, 0)
 
@@ -87,7 +87,7 @@ func (vm *VMware) Login(target string) (map[string]interface{}, error) {
 	return loginData, nil
 }
 
-func (vm *VMware) Logout(loginData map[string]interface{}) error {
+func (vm *VMware) Logout(loginData map[string]interface{}, logger log.Logger) error {
 
 	/*
 		url := fmt.Sprintf("%s://%s/api/session", *vmwSchema, loginData["target"].(string))
@@ -120,7 +120,7 @@ func (vm *VMware) Logout(loginData map[string]interface{}) error {
 	return nil, fmt.Errorf("wrong or undefined target type")
 }*/
 
-func (vm *VMware) Get(loginData, extraConfig map[string]interface{}) (interface{}, error) {
+func (vm *VMware) Get(loginData, extraConfig map[string]interface{}, logger log.Logger) (interface{}, error) {
 
 	url := fmt.Sprintf("%s://%s%s", *vmwSchema, loginData["target"], extraConfig["api"])
 

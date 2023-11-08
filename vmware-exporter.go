@@ -32,11 +32,34 @@ var (
 	logFormat = flag.String("log.format", "logfmt", "Log output format. Available options are: logfmt and json")
 )
 
+func setLogger(lf, ll *string) *promlog.Config {
+	promlogFormat := &promlog.AllowedFormat{}
+	promlogFormat.Set(*lf)
+
+	promlogLevel := &promlog.AllowedLevel{}
+	promlogLevel.Set(*ll)
+
+	promlogConfig := &promlog.Config{}
+	promlogConfig.Format = promlogFormat
+	promlogConfig.Level = promlogLevel
+
+	return promlogConfig
+}
+
 func usage() {
 	const s = `
 vmware-exporter collects metrics data from VMware vCenter. 
 `
 	config.Usage(s)
+}
+
+func webConfig(listenAddress *string) *web.FlagConfig {
+
+	listenAddresses := []string{*listenAddress}
+	systemSocket := false
+	configFile := ""
+
+	return &web.FlagConfig{WebListenAddresses: &listenAddresses, WebSystemdSocket: &systemSocket, WebConfigFile: &configFile}
 }
 
 func main() {
@@ -45,7 +68,7 @@ func main() {
 	flag.Usage = usage
 	config.Parse()
 
-	logger := promlog.New(config.SetLogger(logFormat, logLevel))
+	logger := promlog.New(setLogger(logFormat, logLevel))
 
 	level.Debug(logger).Log("disable exporter target is", disableExporterTarget)
 
@@ -72,7 +95,7 @@ func main() {
 
 	server := &http.Server{}
 
-	if err := web.ListenAndServe(server, config.WebConfig(listenAddress), logger); err != nil {
+	if err := web.ListenAndServe(server, webConfig(listenAddress), logger); err != nil {
 		level.Error(logger).Log("err", err)
 		os.Exit(1)
 	}
