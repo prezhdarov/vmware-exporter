@@ -1,14 +1,14 @@
 module github.com/prezhdarov/vmware-exporter
 
-go 1.21
+go 1.22
 
 require (
 	github.com/go-kit/log v0.2.1
-	github.com/prezhdarov/prometheus-exporter v0.0.5
-	github.com/prometheus/client_golang v1.18.0
-	github.com/prometheus/common v0.45.0
+	github.com/prezhdarov/prometheus-exporter v0.0.6
+	github.com/prometheus/client_golang v1.19.0
+	github.com/prometheus/common v0.48.0
 	github.com/prometheus/exporter-toolkit v0.11.0
-	github.com/vmware/govmomi v0.34.2
+	github.com/vmware/govmomi v0.35.0
 )
 
 require (
@@ -18,7 +18,6 @@ require (
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
-	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
