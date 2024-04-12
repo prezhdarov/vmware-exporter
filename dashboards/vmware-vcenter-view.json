@@ -820,7 +820,7 @@
               "mode": "thresholds"
             },
             "custom": {
-              "align": "center",
+              "align": "left",
               "cellOptions": {
                 "type": "auto"
               },
