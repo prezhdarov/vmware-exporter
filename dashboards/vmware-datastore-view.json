@@ -906,7 +906,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "definition": "label_values(vmware_vcenter_info{job=\"$job\"},vcenter)",
+          "definition": "label_values(vmware_vcenter_info{},job)",
           "hide": 0,
           "includeAll": false,
           "label": "Job",
@@ -914,7 +914,7 @@
           "name": "job",
           "options": [],
           "query": {
-            "query": "label_values(vmware_vcenter_info{job=\"$job\"},vcenter)",
+            "query": "label_values(vmware_vcenter_info{},job)",
             "refId": "StandardVariableQuery"
           },
           "refresh": 2,
@@ -934,7 +934,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "definition": "label_values(vmware_vcenter_info{},vcenter)",
+          "definition": "label_values(vmware_vcenter_info{job=\"$job\"},vcenter)",
           "hide": 0,
           "includeAll": false,
           "label": "vCenter",
@@ -942,7 +942,7 @@
           "name": "vcenter",
           "options": [],
           "query": {
-            "query": "label_values(vmware_vcenter_info{},vcenter)",
+            "query": "label_values(vmware_vcenter_info{job=\"$job\"},vcenter)",
             "refId": "StandardVariableQuery"
           },
           "refresh": 2,
