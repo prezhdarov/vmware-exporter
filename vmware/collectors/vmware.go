@@ -73,7 +73,7 @@ func fetchProperties(ctx context.Context, viewManager *view.Manager, vmwClient *
 
 }
 
-func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger log.Logger, sampleCount int,
+func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger log.Logger, sampleCount, sampleInterval int32,
 	perfManager *performance.Manager, vcenter, moType, namespace, subsystem, instance string,
 	counters []string, countersSpec map[string]*types.PerfCounterInfo,
 	targetRefs []types.ManagedObjectReference, targetNames map[string]string) {
@@ -83,9 +83,9 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 	begin := time.Now()
 
 	spec := types.PerfQuerySpec{
-		MaxSample:  int32(sampleCount),                         // Number of samples to fetch - if samples are fetched every 20s only one is needed.
+		MaxSample:  sampleCount,                                // Number of samples to fetch - if samples are fetched every 20s only one is needed.
 		MetricId:   []types.PerfMetricId{{Instance: instance}}, //Instance takes either null string or * (or in fact any name of an performance manager metric instance)
-		IntervalId: 20,                                         // 20 seconds
+		IntervalId: sampleInterval,                             // 20 seconds
 	}
 
 	sample, err := perfManager.SampleByName(ctx, spec, counters, targetRefs)
@@ -113,6 +113,9 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 		case moType == "VirtualMachine":
 			labelMap["vm"] = targetNames[metric.Entity.Value]
 			labelMap["vmmo"] = metric.Entity.Value
+		case moType == "Datastore":
+			labelMap["ds"] = targetNames[metric.Entity.Value]
+			labelMap["dsmo"] = metric.Entity.Value
 		}
 
 		for _, value := range metric.Value {

@@ -125,7 +125,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 		switch {
 		case i == 0:
 			go func(i int) {
-				scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int), loginData["perf"].(*performance.Manager),
+				scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int32), loginData["interval"].(int32), loginData["perf"].(*performance.Manager),
 					loginData["target"].(string), "VirtualMachine", namespace, vmSubsystem, "", cVMCounters,
 					loginData["counters"].(map[string]*types.PerfCounterInfo), vmRefs, vmNames)
 				wg.Done()
@@ -133,7 +133,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 
 		case i == 1:
 			go func(i int) {
-				scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int), loginData["perf"].(*performance.Manager),
+				scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int32), loginData["interval"].(int32), loginData["perf"].(*performance.Manager),
 					loginData["target"].(string), "VirtualMachine", namespace, vmSubsystem, "*", iVMCounters,
 					loginData["counters"].(map[string]*types.PerfCounterInfo), vmRefs, vmNames)
 				wg.Done()

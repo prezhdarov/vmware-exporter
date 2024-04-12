@@ -22,12 +22,13 @@ import (
 )
 
 var (
-	vmwUser     = flag.String("vmware.username", "", "Username to login to vCenter server")
-	vmwPasswd   = flag.String("vmware.password", "", "Password for the user above")
-	vCenter     = flag.String("vmware.vcenter", "", "vCenter server address in host:port format. This is not the vCenter Management Console")
-	vmwSchema   = flag.String("vmware.schema", "https", "Use HTTP or HTTPS")
-	vmwSSL      = flag.Bool("vmware.ssl", false, "Verify vCenter SSL or trust")
-	vmwInterval = flag.Int("vmware.interval", 20, "Collected stats granularity. Default is every 20s.")
+	vmwUser       = flag.String("vmware.username", "", "Username to login to vCenter server")
+	vmwPasswd     = flag.String("vmware.password", "", "Password for the user above")
+	vCenter       = flag.String("vmware.vcenter", "", "vCenter server address in host:port format. This is not the vCenter Management Console")
+	vmwSchema     = flag.String("vmware.schema", "https", "Use HTTP or HTTPS")
+	vmwSSL        = flag.Bool("vmware.ssl", false, "Verify vCenter SSL or trust")
+	vmwInterval   = flag.Int("vmware.interval", 20, "How often data will be collected. Default is every 20s.")
+	vmGranularity = flag.Int("vmware.granularity", 20, "The frequency of the sampled data. Default is 20s")
 
 	//ldWriteMtx = sync.Mutex{}
 )
@@ -135,11 +136,11 @@ func (vm *VMware) Get(loginData, extraConfig map[string]interface{}, logger log.
 // request is where the http magic happens
 func request(method, url string, headers map[string]string, login bool) (int, string, []byte, error) {
 
+	transport := http.DefaultTransport
+	transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: !*vmwSSL}
 	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: !*vmwSSL}},
-
-		Timeout: time.Duration(*vmwInterval-2) * time.Second,
+		Transport: transport,
+		Timeout:   time.Duration(*vmwInterval-2) * time.Second,
 	}
 
 	req, err := http.NewRequest(method, url, nil)
@@ -237,8 +238,8 @@ func govmomiLogin(loginData map[string]interface{}) error {
 	//Finally add the context and the govmomi client itself
 	loginData["ctx"] = ctx
 	loginData["client"] = client
-
-	loginData["samples"] = *vmwInterval / 20
+	loginData["interval"] = int32(*vmwInterval)
+	loginData["samples"] = int32(*vmwInterval / *vmGranularity)
 
 	return nil
 }

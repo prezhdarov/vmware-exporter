@@ -22,7 +22,7 @@ const (
 
 var datastoreCollectorFlag = flag.Bool(fmt.Sprintf("collector.%s", datastoreSubsystem), collector.DefaultEnabled, fmt.Sprintf("Enable the %s collector (default: %v)", datastoreSubsystem, collector.DefaultEnabled))
 
-var datastoreCounters = []string{"datastore.capacity.latest", "datastore.provisioned.latest", "datastore.used.latest"}
+var datastoreCounters = []string{"disk.provisioned.latest", "disk.used.latest"}
 
 type datastoreCollector struct {
 	logger log.Logger
@@ -87,8 +87,13 @@ func (c *datastoreCollector) Update(ch chan<- prometheus.Metric, namespace strin
 		)
 	}
 
-	scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int), loginData["perf"].(*performance.Manager),
-		loginData["target"].(string), "DataStore", namespace, hostSubsystem, " ", datastoreCounters,
+	//for key, _ := range loginData["counters"].(map[string]*types.PerfCounterInfo) {
+	//	fmt.Println(key)
+	//}
+
+	// A dirty workaround to grab data for provisioned storage in each datastore (until there is better option out there to collect in REST)
+	scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int32), 300, loginData["perf"].(*performance.Manager),
+		loginData["target"].(string), "Datastore", namespace, datastoreSubsystem, "", datastoreCounters,
 		loginData["counters"].(map[string]*types.PerfCounterInfo), datastoreRefs, datastoreNames)
 
 	return nil

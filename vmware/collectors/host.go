@@ -143,7 +143,7 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 
 	level.Debug(c.logger).Log("msg", fmt.Sprintf("Time to process PropColletor for Host: %f\n", time.Since(begin).Seconds()))
 
-	level.Debug(c.logger).Log("msg", fmt.Sprintf("Max samples set to %d\n", loginData["samples"].(int)))
+	level.Debug(c.logger).Log("msg", fmt.Sprintf("Max samples set to %d\n", loginData["samples"].(int32)))
 
 	begin = time.Now()
 
@@ -152,7 +152,7 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 		switch {
 		case i == 0:
 			go func(i int) {
-				scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int), loginData["perf"].(*performance.Manager),
+				scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int32), loginData["interval"].(int32), loginData["perf"].(*performance.Manager),
 					loginData["target"].(string), "HostSystem", namespace, hostSubsystem, "", cHostCounters,
 					loginData["counters"].(map[string]*types.PerfCounterInfo), hostRefs, hostNames)
 				wg.Done()
@@ -160,7 +160,7 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 
 		case i == 1:
 			go func(i int) {
-				scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int), loginData["perf"].(*performance.Manager),
+				scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int32), loginData["interval"].(int32), loginData["perf"].(*performance.Manager),
 					loginData["target"].(string), "HostSystem", namespace, hostSubsystem, "*", iHostCounters,
 					loginData["counters"].(map[string]*types.PerfCounterInfo), hostRefs, hostNames)
 				wg.Done()
