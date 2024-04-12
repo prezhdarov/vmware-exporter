@@ -207,7 +207,7 @@
               {
                 "targetBlank": true,
                 "title": "$vm",
-                "url": "d/VMwExVmV/vm-view?${__url_time_range}&${datasource:queryparam}﻿&﻿${vcenter:queryparam}﻿&﻿${datacenter:queryparam}﻿&﻿${dcmo:queryparam}﻿&﻿${dchostfolder:queryparam}﻿&﻿${computemo:queryparam}﻿&﻿${cluster:queryparam}﻿&﻿${clustermo:queryparam}﻿&${host:queryparam}&${hostmo:queryparam}&var-vm=${__field.labels.vm}&var-vmmo=${__field.labels.vmmo}"
+                "url": "d/VMwExVmV/vm-view?${__url_time_range}&${datasource:queryparam}&${job:queryparam}&${vcenter:queryparam}&${datacenter:queryparam}&${dcmo:queryparam}&${dchostfolder:queryparam}&${computemo:queryparam}&${cluster:queryparam}&${clustermo:queryparam}&${host:queryparam}&${hostmo:queryparam}&var-vm=${__field.labels.vm}&var-vmmo=${__field.labels.vmmo}"
               }
             ],
             "mappings": [],
@@ -280,7 +280,7 @@
               {
                 "targetBlank": true,
                 "title": "$vm",
-                "url": "d/nfvVMwvmV/vm-view?${__url_time_range}&${datasource:queryparam}﻿&﻿${vcenter:queryparam}﻿&﻿${datacenter:queryparam}﻿&﻿${dcmo:queryparam}﻿&﻿${dchostfolder:queryparam}﻿&﻿${computemo:queryparam}﻿&﻿${cluster:queryparam}﻿&﻿${clustermo:queryparam}﻿&${host:queryparam}&${hostmo:queryparam}&var-vm=${__field.labels.vm}&var-vmmo=${__field.labels.vmmo}"
+                "url": "d/nfvVMwvmV/vm-view?${__url_time_range}&${datasource:queryparam}&${job:queryparam}&${vcenter:queryparam}&${datacenter:queryparam}&${dcmo:queryparam}&${dchostfolder:queryparam}&${computemo:queryparam}&${cluster:queryparam}&${clustermo:queryparam}&${host:queryparam}&${hostmo:queryparam}&var-vm=${__field.labels.vm}&var-vmmo=${__field.labels.vmmo}"
               }
             ],
             "mappings": [],
@@ -2143,7 +2143,35 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "definition": "label_values(vmware_vcenter_info{},vcenter)",
+          "definition": "label_values(vmware_vcenter_info,job)",
+          "hide": 0,
+          "includeAll": false,
+          "label": "Job",
+          "multi": false,
+          "name": "job",
+          "options": [],
+          "query": {
+            "query": "label_values(vmware_vcenter_info,job)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 2,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        },
+        {
+          "current": {
+            "isNone": true,
+            "selected": false,
+            "text": "None",
+            "value": ""
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "definition": "label_values(vmware_vcenter_info{job=\"$job\"},vcenter)",
           "hide": 0,
           "includeAll": false,
           "label": "vCenter",
@@ -2151,7 +2179,7 @@
           "name": "vcenter",
           "options": [],
           "query": {
-            "query": "label_values(vmware_vcenter_info{},vcenter)",
+            "query": "label_values(vmware_vcenter_info{job=\"$job\"},vcenter)",
             "refId": "StandardVariableQuery"
           },
           "refresh": 2,
