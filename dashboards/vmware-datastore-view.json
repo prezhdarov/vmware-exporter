@@ -1079,7 +1079,10 @@
   "refresh": "20s",
   "revision": 1,
   "schemaVersion": 39,
-  "tags": [],
+  "tags": [
+    "vmware",
+    "datastore"
+  ],
   "templating": {
     "list": [
       {
