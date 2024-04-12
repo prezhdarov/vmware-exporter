@@ -9,9 +9,11 @@ import (
 	"github.com/go-kit/log"
 	"github.com/prezhdarov/prometheus-exporter/collector"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/vmware/govmomi/performance"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/mo"
+	"github.com/vmware/govmomi/vim25/types"
 )
 
 const (
@@ -19,6 +21,8 @@ const (
 )
 
 var datastoreCollectorFlag = flag.Bool(fmt.Sprintf("collector.%s", datastoreSubsystem), collector.DefaultEnabled, fmt.Sprintf("Enable the %s collector (default: %v)", datastoreSubsystem, collector.DefaultEnabled))
+
+var datastoreCounters = []string{"datastore.capacity.latest", "datastore.provisioned.latest", "datastore.used.latest"}
 
 type datastoreCollector struct {
 	logger log.Logger
@@ -34,8 +38,11 @@ func NewdatastoreCollector(logger log.Logger) (collector.Collector, error) {
 
 func (c *datastoreCollector) Update(ch chan<- prometheus.Metric, namespace string, clientAPI collector.ClientAPI, loginData map[string]interface{}, params map[string]string) error {
 
-	var datastores []mo.Datastore
-
+	var (
+		datastores     []mo.Datastore
+		datastoreRefs  []types.ManagedObjectReference
+		datastoreNames = make(map[string]string)
+	)
 	err := fetchProperties(
 		loginData["ctx"].(context.Context), loginData["view"].(*view.Manager), loginData["client"].(*vim25.Client),
 		[]string{"Datastore"}, []string{"summary", "host", "vm", "parent"}, &datastores, c.logger,
@@ -48,6 +55,9 @@ func (c *datastoreCollector) Update(ch chan<- prometheus.Metric, namespace strin
 	re := regexp.MustCompile(`(vmfs)?(volumes)?(ds)?(:)?(/+)`)
 
 	for _, datastore := range datastores {
+
+		datastoreRefs = append(datastoreRefs, datastore.Self)
+		datastoreNames[datastore.Self.Value] = datastore.Summary.Name
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(
@@ -76,6 +86,10 @@ func (c *datastoreCollector) Update(ch chan<- prometheus.Metric, namespace strin
 			), prometheus.GaugeValue, float64(datastore.Summary.FreeSpace),
 		)
 	}
+
+	scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int), loginData["perf"].(*performance.Manager),
+		loginData["target"].(string), "DataStore", namespace, hostSubsystem, " ", datastoreCounters,
+		loginData["counters"].(map[string]*types.PerfCounterInfo), datastoreRefs, datastoreNames)
 
 	return nil
 }
