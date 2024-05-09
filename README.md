@@ -6,7 +6,9 @@ This is a simple prometheus exporter that collects various metrics from a vCente
 
 ## How to use
 
-Run the exporter in a docker container (or start as a process) with all the settings necessary.
+Run the exporter in a docker container (or start as a process) with all the settings necessary. Scrape it..
+
+Exporter scrapes single vCenter host when /metcis path is used. Multiple vCenter hosts can be scraped using /probe, however these vCenter hosts must share credentials.
 
 ### Settings 
 
@@ -32,3 +34,6 @@ The options available are:
 | -collector.vm | Enables or disables Virtual Machine metrics collection (default: enabled) |
 | -collector.esxcli.host.nic | Collects ESXi NIC firmware information using esxcli invoked through the vCenter (default: disabled) |
 | -collector.esxcli.storage | Collects ESXi storage firmware information using esxcli invoked through the vCenter (default: disabled) |
+
+
+The esxcli collectors are a very specific use case that probably is not going to be needed by anyone. Left the code in here as an example on how custom information can be collected using esxcli command tool remotely via vCenter SOAP API 
