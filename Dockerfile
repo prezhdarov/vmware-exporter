@@ -8,7 +8,7 @@ ENV GO111MODULE=on \
     CGO_ENABLED=0 \
     GOOS=linux \
     GOARCH=amd64 \
-    GOAMD64=v3
+    GOAMD64=v2
 
 ADD . /build
 WORKDIR /build
