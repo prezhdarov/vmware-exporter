@@ -1,6 +1,6 @@
 module github.com/prezhdarov/vmware-exporter
 
-go 1.22
+go 1.22.5
 
 require (
 	github.com/go-kit/log v0.2.1
@@ -8,7 +8,7 @@ require (
 	github.com/prometheus/client_golang v1.19.1
 	github.com/prometheus/common v0.55.0
 	github.com/prometheus/exporter-toolkit v0.11.0
-	github.com/vmware/govmomi v0.39.0
+	github.com/vmware/govmomi v0.40.0
 )
 
 require (
@@ -24,9 +24,9 @@ require (
 	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
