@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 
-	"github.com/go-kit/log"
 	"github.com/prezhdarov/prometheus-exporter/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/view"
@@ -20,14 +20,14 @@ const (
 var clusterCollectorFlag = flag.Bool(fmt.Sprintf("collector.%s", clusterSubsystem), collector.DefaultEnabled, fmt.Sprintf("Enable the %s collector (default: %v)", clusterSubsystem, collector.DefaultEnabled))
 
 type clusterCollector struct {
-	logger log.Logger
+	logger *slog.Logger
 }
 
 func init() {
 	collector.RegisterCollector("cluster", clusterCollectorFlag, NewClusterCollector)
 }
 
-func NewClusterCollector(logger log.Logger) (collector.Collector, error) {
+func NewClusterCollector(logger *slog.Logger) (collector.Collector, error) {
 	return &clusterCollector{logger}, nil
 }
 

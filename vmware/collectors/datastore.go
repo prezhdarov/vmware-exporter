@@ -4,9 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 	"regexp"
 
-	"github.com/go-kit/log"
 	"github.com/prezhdarov/prometheus-exporter/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/performance"
@@ -25,14 +25,14 @@ var datastoreCollectorFlag = flag.Bool(fmt.Sprintf("collector.%s", datastoreSubs
 var datastoreCounters = []string{"disk.provisioned.latest", "disk.used.latest"}
 
 type datastoreCollector struct {
-	logger log.Logger
+	logger *slog.Logger
 }
 
 func init() {
 	collector.RegisterCollector("datastore", datastoreCollectorFlag, NewdatastoreCollector)
 }
 
-func NewdatastoreCollector(logger log.Logger) (collector.Collector, error) {
+func NewdatastoreCollector(logger *slog.Logger) (collector.Collector, error) {
 	return &datastoreCollector{logger}, nil
 }
 

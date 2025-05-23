@@ -6,12 +6,11 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/prezhdarov/prometheus-exporter/collector"
 
 	"github.com/vmware/govmomi/performance"
@@ -48,13 +47,13 @@ func NewAPI() *VMware {
 	return &VMware{}
 }
 
-func Load(logger log.Logger) {
+func Load(logger *slog.Logger) {
 
-	level.Info(logger).Log("msg", "Loading VMware vSphere API")
+	logger.Info("msg", "Loading VMware vSphere API", nil)
 
 }
 
-func (vm *VMware) Login(target string, logger log.Logger) (map[string]interface{}, error) {
+func (vm *VMware) Login(target string, logger *slog.Logger) (map[string]interface{}, error) {
 
 	loginData := make(map[string]interface{}, 0)
 
@@ -88,7 +87,7 @@ func (vm *VMware) Login(target string, logger log.Logger) (map[string]interface{
 	return loginData, nil
 }
 
-func (vm *VMware) Logout(loginData map[string]interface{}, logger log.Logger) error {
+func (vm *VMware) Logout(loginData map[string]interface{}, logger *slog.Logger) error {
 
 	/*
 		url := fmt.Sprintf("%s://%s/api/session", *vmwSchema, loginData["target"].(string))
@@ -121,7 +120,7 @@ func (vm *VMware) Logout(loginData map[string]interface{}, logger log.Logger) er
 	return nil, fmt.Errorf("wrong or undefined target type")
 }*/
 
-func (vm *VMware) Get(loginData, extraConfig map[string]interface{}, logger log.Logger) (interface{}, error) {
+func (vm *VMware) Get(loginData, extraConfig map[string]interface{}, logger *slog.Logger) (interface{}, error) {
 
 	url := fmt.Sprintf("%s://%s%s", *vmwSchema, loginData["target"], extraConfig["api"])
 

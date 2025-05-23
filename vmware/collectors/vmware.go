@@ -3,11 +3,10 @@ package vmwareCollectors
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/performance"
 	"github.com/vmware/govmomi/view"
@@ -15,8 +14,8 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 )
 
-func Load(logger log.Logger) {
-	level.Info(logger).Log("msg", "Loading VMware vSphere collector set")
+func Load(logger *slog.Logger) {
+	logger.Info("msg", "Loading VMware vSphere collector set", nil)
 }
 
 func inSlice(slice []string, val *string) bool {
@@ -47,7 +46,7 @@ func moSliceToString(moSlice []types.ManagedObjectReference) *string {
 	return &stringList
 }
 
-func fetchProperties(ctx context.Context, viewManager *view.Manager, vmwClient *vim25.Client, moTypes, propSpec []string, dataContainer interface{}, logger log.Logger) error {
+func fetchProperties(ctx context.Context, viewManager *view.Manager, vmwClient *vim25.Client, moTypes, propSpec []string, dataContainer interface{}, logger *slog.Logger) error {
 
 	view, err := viewManager.CreateContainerView(
 		ctx, vmwClient.ServiceContent.RootFolder,
@@ -67,18 +66,18 @@ func fetchProperties(ctx context.Context, viewManager *view.Manager, vmwClient *
 		return err
 	}
 
-	level.Debug(logger).Log("msg", fmt.Sprintf("Time to fetch PropColletor for %s: %f\n", moTypes, time.Since(begin).Seconds()))
+	logger.Debug("msg", fmt.Sprintf("Time to fetch PropColletor for %s: %f\n", moTypes, time.Since(begin).Seconds()), nil)
 
 	return nil
 
 }
 
-func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger log.Logger, sampleCount, sampleInterval int32,
+func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger *slog.Logger, sampleCount, sampleInterval int32,
 	perfManager *performance.Manager, vcenter, moType, namespace, subsystem, instance string,
 	counters []string, countersSpec map[string]*types.PerfCounterInfo,
 	targetRefs []types.ManagedObjectReference, targetNames map[string]string) {
 
-	level.Debug(logger).Log("msg", fmt.Sprintf("gathering perfman metrics for hostRef %s\n", targetRefs[0]))
+	logger.Debug("msg", fmt.Sprintf("gathering perfman metrics for hostRef %s\n", targetRefs[0]), nil)
 
 	begin := time.Now()
 
@@ -90,15 +89,15 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 
 	sample, err := perfManager.SampleByName(ctx, spec, counters, targetRefs)
 	if err != nil {
-		level.Error(logger).Log("msg", "error sampling the metrics and targtes", "err", err)
+		logger.Error("msg", "error sampling the metrics and targtes", fmt.Sprintf("error: %s", err))
 	}
 
 	metrics, err := perfManager.ToMetricSeries(ctx, sample)
 	if err != nil {
-		level.Error(logger).Log("msg", "error fetching metrics", "err", err)
+		logger.Error("msg", "error fetching metrics", fmt.Sprintf("error: %s", err))
 	}
 
-	level.Debug(logger).Log("msg", fmt.Sprintf("Time to fetch Perfman for %s: %f\n", moType, time.Since(begin).Seconds()))
+	logger.Debug("msg", fmt.Sprintf("Time to fetch Perfman for %s: %f\n", moType, time.Since(begin).Seconds()), nil)
 
 	begin = time.Now()
 
@@ -156,6 +155,6 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 		}
 	}
 
-	level.Debug(logger).Log("msg", fmt.Sprintf("Time to process Perfman for %s: %f\n", moType, time.Since(begin).Seconds()))
+	logger.Debug("msg", fmt.Sprintf("Time to process Perfman for %s: %f\n", moType, time.Since(begin).Seconds()), nil)
 
 }

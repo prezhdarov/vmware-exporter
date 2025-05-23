@@ -4,13 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 	"strings"
 	"sync"
 
 	"github.com/prezhdarov/vmware-exporter/vmware/esxcli"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/prezhdarov/prometheus-exporter/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/view"
@@ -35,14 +34,14 @@ var (
 var esxclistoragelistCollectorFlag = flag.Bool("collector.esxcli.storage", collector.DefaultDisabled, fmt.Sprintf("Enable the %s collector (default: %v)", esxclistoragelistSubsystem, collector.DefaultDisabled))
 
 type esxclistoragelistCollector struct {
-	logger log.Logger
+	logger *slog.Logger
 }
 
 func init() {
 	collector.RegisterCollector("esxcli.storage", esxclistoragelistCollectorFlag, NewesxcliStorageListCCollector)
 }
 
-func NewesxcliStorageListCCollector(logger log.Logger) (collector.Collector, error) {
+func NewesxcliStorageListCCollector(logger *slog.Logger) (collector.Collector, error) {
 	return &esxclistoragelistCollector{logger}, nil
 }
 
@@ -82,14 +81,14 @@ func (c *esxclistoragelistCollector) Update(ch chan<- prometheus.Metric, namespa
 		}
 	}
 
-	level.Debug(c.logger).Log("msg", fmt.Sprintf("dispatched %d StorageDriver routines", dCounter))
+	c.logger.Debug("msg", fmt.Sprintf("dispatched %d StorageDriver routines", dCounter), nil)
 
 	wg.Wait()
 
 	return nil
 }
 
-func esxcliStorageDriverInfo(ch chan<- prometheus.Metric, logger log.Logger, ctx context.Context, client *vim25.Client,
+func esxcliStorageDriverInfo(ch chan<- prometheus.Metric, logger *slog.Logger, ctx context.Context, client *vim25.Client,
 	host mo.HostSystem, namespace, subsystem *string) {
 
 	var (
@@ -100,7 +99,7 @@ func esxcliStorageDriverInfo(ch chan<- prometheus.Metric, logger log.Logger, ctx
 
 	mme, err := esxcli.GetHostMME(ctx, client, &host.Self)
 	if err != nil {
-		level.Error(logger).Log("msg", "error retrieving host MME", "err", err, "host", host.Name)
+		logger.Error("msg", "error retrieving host MME", fmt.Sprintf("error: %s", err), "host", host.Name)
 		return
 	}
 
@@ -133,7 +132,7 @@ func esxcliStorageDriverInfo(ch chan<- prometheus.Metric, logger log.Logger, ctx
 	*/
 	err = esxcli.GetSOAP(ctx, client, &request, &data)
 	if err != nil {
-		level.Error(logger).Log("msg", "error fetching soap data", "err", err)
+		logger.Error("msg", "error fetching soap data", fmt.Sprintf("error: %s", err))
 		return
 	}
 

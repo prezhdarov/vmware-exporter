@@ -4,11 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/prezhdarov/prometheus-exporter/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/performance"
@@ -36,7 +35,7 @@ var (
 )
 
 type vmCollector struct {
-	logger log.Logger
+	logger *slog.Logger
 }
 
 func init() {
@@ -44,7 +43,7 @@ func init() {
 }
 
 // NewMeminfoCollector returns a new Collector exposing memory stats.
-func NewvmCollector(logger log.Logger) (collector.Collector, error) {
+func NewvmCollector(logger *slog.Logger) (collector.Collector, error) {
 	return &vmCollector{logger}, nil
 }
 
@@ -116,7 +115,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 
 	}
 
-	level.Debug(c.logger).Log("msg", fmt.Sprintf("Time to process PropColletor for VM: %f\n", time.Since(begin).Seconds()))
+	c.logger.Debug("msg", fmt.Sprintf("Time to process PropColletor for VM: %f\n", time.Since(begin).Seconds()), nil)
 
 	begin = time.Now()
 
@@ -144,7 +143,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 
 	wg.Wait()
 
-	level.Debug(c.logger).Log("msg", fmt.Sprintf("Time to process PerfMan for VM: %f\n", time.Since(begin).Seconds()))
+	c.logger.Debug("msg", fmt.Sprintf("Time to process PerfMan for VM: %f\n", time.Since(begin).Seconds()), nil)
 
 	return nil
 }

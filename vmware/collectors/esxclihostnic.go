@@ -4,12 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 	"sync"
 
 	"github.com/prezhdarov/vmware-exporter/vmware/esxcli"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/prezhdarov/prometheus-exporter/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/view"
@@ -43,14 +42,14 @@ var (
 var esxclihostnicCollectorFlag = flag.Bool("collector.esxcli.host.nic", collector.DefaultDisabled, fmt.Sprintf("Enable the %s collector (default: %v)", esxclihostnicSubsystem, collector.DefaultDisabled))
 
 type esxclihostnicCollector struct {
-	logger log.Logger
+	logger *slog.Logger
 }
 
 func init() {
 	collector.RegisterCollector("esxcli.host.nic", esxclihostnicCollectorFlag, NewesxcliHostNICCollector)
 }
 
-func NewesxcliHostNICCollector(logger log.Logger) (collector.Collector, error) {
+func NewesxcliHostNICCollector(logger *slog.Logger) (collector.Collector, error) {
 	return &esxclihostnicCollector{logger}, nil
 }
 
@@ -93,7 +92,7 @@ func (c *esxclihostnicCollector) Update(ch chan<- prometheus.Metric, namespace s
 	return nil
 }
 
-func esxcliHostNicInfo(ch chan<- prometheus.Metric, logger log.Logger, ctx context.Context, client *vim25.Client,
+func esxcliHostNicInfo(ch chan<- prometheus.Metric, logger *slog.Logger, ctx context.Context, client *vim25.Client,
 	host mo.HostSystem, namespace, subsystem *string) {
 
 	var (
@@ -106,7 +105,7 @@ func esxcliHostNicInfo(ch chan<- prometheus.Metric, logger log.Logger, ctx conte
 
 	mme, err := esxcli.GetHostMME(ctx, client, &host.Self)
 	if err != nil {
-		level.Error(logger).Log("msg", "error retrieving host MME", "err", err)
+		logger.Error("msg", "error retrieving host MME", fmt.Sprintf("error: %s", err))
 		return
 	}
 
@@ -119,7 +118,7 @@ func esxcliHostNicInfo(ch chan<- prometheus.Metric, logger log.Logger, ctx conte
 
 	err = esxcli.GetSOAP(ctx, client, &request, &data)
 	if err != nil {
-		level.Error(logger).Log("msg", "error retrieving nic list", "err", err)
+		logger.Error("msg", "error retrieving nic list", fmt.Sprintf("error: %s", err))
 		return
 	}
 
@@ -145,7 +144,7 @@ func esxcliHostNicInfo(ch chan<- prometheus.Metric, logger log.Logger, ctx conte
 
 }
 
-func esxcliGetNicInfo(ch chan<- prometheus.Metric, logger log.Logger, ctx context.Context, client *vim25.Client, request esxcli.ExecuteSoapRequest,
+func esxcliGetNicInfo(ch chan<- prometheus.Metric, logger *slog.Logger, ctx context.Context, client *vim25.Client, request esxcli.ExecuteSoapRequest,
 	hostRef, hostName, namespace, subsystem *string, nic *NicListInfo, driverMutex, firmwareMutex *sync.Mutex, driverMap, firmwareMap map[string][]string) {
 
 	var data NicResponse
@@ -154,7 +153,7 @@ func esxcliGetNicInfo(ch chan<- prometheus.Metric, logger log.Logger, ctx contex
 
 	err := esxcli.GetSOAP(ctx, client, &request, &data)
 	if err != nil {
-		level.Error(logger).Log("msg", "error fetching soap data", "err", err, "host", hostName)
+		logger.Error("msg", "error fetching soap data", fmt.Sprintf("error: %s", err), "host", hostName)
 		return
 	}
 

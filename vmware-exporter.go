@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -10,8 +11,7 @@ import (
 	vmware "github.com/prezhdarov/vmware-exporter/vmware/api"
 	vmwareCollectors "github.com/prezhdarov/vmware-exporter/vmware/collectors"
 
-	"github.com/go-kit/log/level"
-	"github.com/prometheus/common/promlog"
+	"github.com/prometheus/common/promslog"
 	"github.com/prometheus/exporter-toolkit/web"
 )
 
@@ -29,20 +29,6 @@ var (
 	logLevel  = flag.String("log.level", "debug", "Log Level minimums. Available options are: debug,info,warn and error")
 	logFormat = flag.String("log.format", "logfmt", "Log output format. Available options are: logfmt and json")
 )
-
-func setLogger(lf, ll *string) *promlog.Config {
-	promlogFormat := &promlog.AllowedFormat{}
-	promlogFormat.Set(*lf)
-
-	promlogLevel := &promlog.AllowedLevel{}
-	promlogLevel.Set(*ll)
-
-	promlogConfig := &promlog.Config{}
-	promlogConfig.Format = promlogFormat
-	promlogConfig.Level = promlogLevel
-
-	return promlogConfig
-}
 
 func usage() {
 	const s = `
@@ -66,9 +52,9 @@ func main() {
 	flag.Usage = usage
 	config.Parse()
 
-	logger := promlog.New(setLogger(logFormat, logLevel))
+	logger := promslog.New(config.SetLogger(logFormat, logLevel))
 
-	level.Debug(logger).Log("disable exporter target is", disableExporterTarget)
+	logger.Debug("disable exporter target is", fmt.Sprintf("%t", *disableExporterTarget), nil)
 
 	vmware.Load(logger)
 
@@ -89,12 +75,12 @@ func main() {
 			</html>`))
 	})
 
-	level.Info(logger).Log("msg", "listening on", "address", listenAddress)
+	logger.Info("msg", "listening on", "address", *listenAddress, nil)
 
 	server := &http.Server{}
 
 	if err := web.ListenAndServe(server, webConfig(listenAddress), logger); err != nil {
-		level.Error(logger).Log("err", err)
+		logger.Error(fmt.Sprintf("error: %s", err))
 		os.Exit(1)
 	}
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 
-	"github.com/go-kit/log"
 	"github.com/prezhdarov/prometheus-exporter/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/view"
@@ -20,14 +20,14 @@ const (
 var datacenterCollectorFlag = flag.Bool(fmt.Sprintf("collector.%s", datacenterSubsystem), collector.DefaultEnabled, fmt.Sprintf("Enable the %s collector (default: %v)", datacenterSubsystem, collector.DefaultEnabled))
 
 type datacenterCollector struct {
-	logger log.Logger
+	logger *slog.Logger
 }
 
 func init() {
 	collector.RegisterCollector("datacenter", datacenterCollectorFlag, NewdatacenterCollector)
 }
 
-func NewdatacenterCollector(logger log.Logger) (collector.Collector, error) {
+func NewdatacenterCollector(logger *slog.Logger) (collector.Collector, error) {
 	return &datacenterCollector{logger}, nil
 }
 
