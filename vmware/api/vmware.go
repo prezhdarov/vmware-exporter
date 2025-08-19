@@ -25,7 +25,7 @@ var (
 	vmwPasswd     = flag.String("vmware.password", "", "Password for the user above")
 	vCenter       = flag.String("vmware.vcenter", "", "vCenter server address in host:port format. This is not the vCenter Management Console")
 	vmwSchema     = flag.String("vmware.schema", "https", "Use HTTP or HTTPS")
-	vmwSSL        = flag.Bool("vmware.ssl", false, "Verify vCenter SSL or trust")
+	vmwTLS        = flag.Bool("vmware.insecureTLS", false, "Trust inscure vCenter TLS (true) or verify (default)")
 	vmwInterval   = flag.Int("vmware.interval", 20, "How often data will be collected. Default is every 20s.")
 	vmGranularity = flag.Int("vmware.granularity", 20, "The frequency of the sampled data. Default is 20s")
 
@@ -136,7 +136,7 @@ func (vm *VMware) Get(loginData, extraConfig map[string]interface{}, logger *slo
 func request(method, url string, headers map[string]string, login bool) (int, string, []byte, error) {
 
 	transport := http.DefaultTransport
-	transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: !*vmwSSL}
+	transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: !*vmwTLS}
 	client := &http.Client{
 		Transport: transport,
 		Timeout:   time.Duration(*vmwInterval-2) * time.Second,
@@ -211,7 +211,7 @@ func govmomiLogin(loginData map[string]interface{}) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*vmwInterval-2)*time.Second)
 
-	session := &cache.Session{URL: urlx, Insecure: !*vmwSSL, Passthrough: true}
+	session := &cache.Session{URL: urlx, Insecure: !*vmwTLS, Passthrough: true}
 
 	client := new(vim25.Client)
 
