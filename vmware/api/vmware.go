@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -136,7 +136,7 @@ func (vm *VMware) Get(loginData, extraConfig map[string]interface{}, logger *slo
 func request(method, url string, headers map[string]string, login bool) (int, string, []byte, error) {
 
 	transport := http.DefaultTransport
-	transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: !*vmwTLS}
+	transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: *vmwTLS}
 	client := &http.Client{
 		Transport: transport,
 		Timeout:   time.Duration(*vmwInterval-2) * time.Second,
@@ -164,7 +164,7 @@ func request(method, url string, headers map[string]string, login bool) (int, st
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		return 0, "", nil, err
@@ -211,7 +211,7 @@ func govmomiLogin(loginData map[string]interface{}) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*vmwInterval-2)*time.Second)
 
-	session := &cache.Session{URL: urlx, Insecure: !*vmwTLS, Passthrough: true}
+	session := &cache.Session{URL: urlx, Insecure: *vmwTLS, Passthrough: true}
 
 	client := new(vim25.Client)
 
