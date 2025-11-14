@@ -25,7 +25,7 @@ var (
 	vmwPasswd     = flag.String("vmware.password", "", "Password for the user above")
 	vCenter       = flag.String("vmware.vcenter", "", "vCenter server address in host:port format. This is not the vCenter Management Console")
 	vmwSchema     = flag.String("vmware.schema", "https", "Use HTTP or HTTPS")
-	vmwTLS        = flag.Bool("vmware.insecureTLS", false, "Trust inscure vCenter TLS (true) or verify (default)")
+	vmwTLS        = flag.Bool("vmware.insecureTLS", false, "Trust insecure vCenter TLS (true) or verify (default)")
 	vmwInterval   = flag.Int("vmware.interval", 20, "How often data will be collected. Default is every 20s.")
 	vmGranularity = flag.Int("vmware.granularity", 20, "The frequency of the sampled data. Default is 20s")
 
