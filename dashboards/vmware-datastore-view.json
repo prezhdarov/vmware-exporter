@@ -21,10 +21,10 @@
       }
     ]
   },
-  "editable": false,
+  "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 16,
+  "id": 3,
   "links": [
     {
       "asDropdown": true,
@@ -41,7 +41,6 @@
       "url": ""
     }
   ],
-  "liveNow": false,
   "panels": [
     {
       "datasource": {
@@ -60,7 +59,7 @@
             "steps": [
               {
                 "color": "blue",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -81,6 +80,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -92,7 +92,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -127,7 +127,7 @@
             "steps": [
               {
                 "color": "blue",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -148,6 +148,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -159,7 +160,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -194,7 +195,7 @@
             "steps": [
               {
                 "color": "blue",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -215,6 +216,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -226,7 +228,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -261,7 +263,7 @@
             "steps": [
               {
                 "color": "blue",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -282,6 +284,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -293,7 +296,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -328,7 +331,7 @@
             "steps": [
               {
                 "color": "blue",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -349,6 +352,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -360,7 +364,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -398,7 +402,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "orange",
@@ -424,6 +428,12 @@
       "interval": "20s",
       "options": {
         "displayMode": "lcd",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
         "maxVizHeight": 300,
         "minVizHeight": 16,
         "minVizWidth": 8,
@@ -440,7 +450,7 @@
         "sizing": "auto",
         "valueMode": "color"
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -475,7 +485,7 @@
             "steps": [
               {
                 "color": "dark-green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -496,6 +506,7 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -507,7 +518,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -577,10 +588,12 @@
           "values": false
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -588,7 +601,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk_avg($top,\n    (vmware_vm_datastore_read_average{vcenter=~\"$vcenter\"} * on (pfinstance) group_left \n    vmware_datastore_info{vcenter=~\"$vcenter\", dsmo=\"$dsmo\"}) +\n    (vmware_vm_datastore_write_average{vcenter=~\"$vcenter\"} * on (pfinstance) group_left \n    vmware_datastore_info{vcenter=~\"$vcenter\", dsmo=\"$dsmo\"}),\n    \"Others\"\n) ",
+          "expr": "topk(\n  $top,\n  max_over_time(\n    (\n      (\n        vmware_vm_datastore_read_average{vcenter=~\"$vcenter\"}\n          * on (pfinstance) group_left\n            vmware_datastore_info{vcenter=~\"$vcenter\"}\n      )\n      +\n      (\n        vmware_vm_datastore_write_average{vcenter=~\"$vcenter\"}\n          * on (pfinstance) group_left\n            vmware_datastore_info{vcenter=~\"$vcenter\"}\n      )\n      \n    )[$__range:]\n  )\n)",
           "interval": "20s",
           "legendFormat": "{{vm}}",
           "range": true,
@@ -650,10 +663,12 @@
           "values": false
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -661,7 +676,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk_avg($top,\n    (vmware_vm_datastore_numberReadAveraged_average{vcenter=~\"$vcenter\"} * on (pfinstance) group_left \n    vmware_datastore_info{vcenter=~\"$vcenter\", dsmo=\"$dsmo\"}) +\n    (vmware_vm_datastore_numberWriteAveraged_average{vcenter=~\"$vcenter\"} * on (pfinstance) group_left \n    vmware_datastore_info{vcenter=~\"$vcenter\", dsmo=\"$dsmo\"}),\n    \"Others\"\n) ",
+          "expr": "topk(\n  $top,\n  max_over_time(\n    (\n      (\n        vmware_vm_datastore_numberReadAveraged_average{vcenter=~\"$vcenter\"}\n          * on (pfinstance) group_left\n            vmware_datastore_info{vcenter=~\"$vcenter\"}\n      )\n      +\n      (\n        vmware_vm_datastore_numberWriteAveraged_average{vcenter=~\"$vcenter\"}\n          * on (pfinstance) group_left\n            vmware_datastore_info{vcenter=~\"$vcenter\"}\n      )\n    )[$__range:]\n  )\n)\n",
           "interval": "20s",
           "legendFormat": "{{vm}}",
           "range": true,
@@ -723,10 +738,12 @@
           "values": false
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -734,7 +751,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk_avg($top,\n  vmware_vm_datastore_capacity_used{vcenter=~\"$vcenter\", dsmo=~\"$dsmo\"},\n  \"Others\"\n)",
+          "expr": "topk(\n  $top,\n  max_over_time(\n    vmware_vm_datastore_capacity_used{\n      vcenter=~\"$vcenter\"\n    }[$__range:]\n  )\n)\n",
           "hide": false,
           "interval": "20s",
           "legendFormat": "{{vm}}",
@@ -756,48 +773,13 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": true,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "left",
-            "axisSoftMin": 0,
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": 3600000,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
             }
           },
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
           "unit": "ms"
         },
         "overrides": []
@@ -812,19 +794,25 @@
       "interval": "20s",
       "options": {
         "legend": {
-          "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
-        "timezone": [
-          "browser"
-        ],
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "tooltip": {
-          "mode": "multi",
+          "hideZeros": false,
+          "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -832,7 +820,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk_avg($top,\n    vmware_vm_datastore_totalReadLatency_average{vcenter=~\"$vcenter\"} * on (pfinstance) group_left \n    vmware_datastore_info{vcenter=~\"$vcenter\", dsmo=\"$dsmo\"}\n) ",
+          "expr": "topk(\n  $top,\n  max_over_time(\n    (\n      vmware_vm_datastore_totalReadLatency_average{vcenter=~\"$vcenter\"}\n    )[$__range:]\n  )\n)",
           "interval": "20s",
           "legendFormat": "read: {{vm}} ",
           "range": true,
@@ -853,7 +841,7 @@
         }
       ],
       "title": "Top $top VMs per IO Latency",
-      "type": "timeseries"
+      "type": "piechart"
     },
     {
       "datasource": {
@@ -873,6 +861,7 @@
             "axisPlacement": "left",
             "axisSoftMin": 0,
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
@@ -904,7 +893,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -931,10 +920,12 @@
           "browser"
         ],
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -983,6 +974,7 @@
             "axisPlacement": "left",
             "axisSoftMin": 0,
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
@@ -1014,7 +1006,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -1041,10 +1033,12 @@
           "browser"
         ],
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.1.1",
       "targets": [
         {
           "datasource": {
@@ -1076,9 +1070,9 @@
       "type": "timeseries"
     }
   ],
+  "preload": false,
   "refresh": "20s",
-  "revision": 1,
-  "schemaVersion": 39,
+  "schemaVersion": 41,
   "tags": [
     "vmware",
     "datastore"
@@ -1087,25 +1081,20 @@
     "list": [
       {
         "current": {
-          "selected": false,
           "text": "default",
           "value": "default"
         },
-        "hide": 0,
         "includeAll": false,
-        "multi": false,
         "name": "datasource",
         "options": [],
         "query": "prometheus",
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
         "type": "datasource"
       },
       {
         "current": {
           "isNone": true,
-          "selected": false,
           "text": "None",
           "value": ""
         },
@@ -1114,10 +1103,8 @@
           "uid": "${datasource}"
         },
         "definition": "label_values(vmware_vcenter_info{},job)",
-        "hide": 0,
         "includeAll": false,
         "label": "Job",
-        "multi": false,
         "name": "job",
         "options": [],
         "query": {
@@ -1126,14 +1113,12 @@
         },
         "refresh": 2,
         "regex": "",
-        "skipUrlSync": false,
         "sort": 1,
         "type": "query"
       },
       {
         "current": {
           "isNone": true,
-          "selected": false,
           "text": "None",
           "value": ""
         },
@@ -1142,10 +1127,8 @@
           "uid": "${datasource}"
         },
         "definition": "label_values(vmware_vcenter_info{job=\"$job\"},vcenter)",
-        "hide": 0,
         "includeAll": false,
         "label": "vCenter",
-        "multi": false,
         "name": "vcenter",
         "options": [],
         "query": {
@@ -1154,14 +1137,12 @@
         },
         "refresh": 2,
         "regex": "",
-        "skipUrlSync": false,
         "sort": 1,
         "type": "query"
       },
       {
         "current": {
           "isNone": true,
-          "selected": false,
           "text": "None",
           "value": ""
         },
@@ -1170,10 +1151,8 @@
           "uid": "${datasource}"
         },
         "definition": "label_values(vmware_datacenter_info{vcenter=~\"$vcenter\"},dc)",
-        "hide": 0,
         "includeAll": false,
         "label": "Datacenter",
-        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -1182,13 +1161,11 @@
         },
         "refresh": 2,
         "regex": "",
-        "skipUrlSync": false,
         "sort": 1,
         "type": "query"
       },
       {
         "current": {
-          "selected": false,
           "text": "All",
           "value": "$__all"
         },
@@ -1199,8 +1176,6 @@
         "definition": "label_values(vmware_datacenter_info{vcenter=~\"$vcenter\", dc=~\"$datacenter\"},dcmo)",
         "hide": 2,
         "includeAll": true,
-        "label": "",
-        "multi": false,
         "name": "dcmo",
         "options": [],
         "query": {
@@ -1209,13 +1184,10 @@
         },
         "refresh": 2,
         "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "type": "query"
       },
       {
         "current": {
-          "selected": false,
           "text": "All",
           "value": "$__all"
         },
@@ -1226,8 +1198,6 @@
         "definition": "label_values(vmware_folder_info{vcenter=~\"$vcenter\", dcmo=~\"$dcmo\", dc=\"datastore\"},foldermo)",
         "hide": 2,
         "includeAll": true,
-        "label": "",
-        "multi": false,
         "name": "dcdsfolder",
         "options": [],
         "query": {
@@ -1236,13 +1206,10 @@
         },
         "refresh": 2,
         "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "type": "query"
       },
       {
         "current": {
-          "selected": false,
           "text": "All",
           "value": "$__all"
         },
@@ -1253,8 +1220,6 @@
         "definition": "label_values(vmware_folder_info{vcenter=~\"$vcenter\", dcmo=~\"$dcmo\", dc=\"host\"},foldermo)",
         "hide": 2,
         "includeAll": true,
-        "label": "",
-        "multi": false,
         "name": "dchostfolder",
         "options": [],
         "query": {
@@ -1263,14 +1228,11 @@
         },
         "refresh": 2,
         "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
         "type": "query"
       },
       {
         "current": {
           "isNone": true,
-          "selected": false,
           "text": "None",
           "value": ""
         },
@@ -1279,10 +1241,8 @@
           "uid": "${datasource}"
         },
         "definition": "label_values(vmware_datastore_info{vcenter=~\"$vcenter\"},ds)",
-        "hide": 0,
         "includeAll": false,
         "label": "Datastore",
-        "multi": false,
         "name": "datastore",
         "options": [],
         "query": {
@@ -1291,14 +1251,12 @@
         },
         "refresh": 2,
         "regex": "",
-        "skipUrlSync": false,
         "sort": 1,
         "type": "query"
       },
       {
         "current": {
           "isNone": true,
-          "selected": false,
           "text": "None",
           "value": ""
         },
@@ -1309,8 +1267,6 @@
         "definition": "label_values(vmware_datastore_info{vcenter=~\"$vcenter\", ds=~\"$datastore\"},dsmo)",
         "hide": 2,
         "includeAll": false,
-        "label": "",
-        "multi": false,
         "name": "dsmo",
         "options": [],
         "query": {
@@ -1319,20 +1275,16 @@
         },
         "refresh": 2,
         "regex": "",
-        "skipUrlSync": false,
         "sort": 1,
         "type": "query"
       },
       {
         "current": {
-          "selected": false,
           "text": "5",
           "value": "5"
         },
-        "hide": 0,
         "includeAll": false,
         "label": "Top",
-        "multi": false,
         "name": "top",
         "options": [
           {
@@ -1372,8 +1324,6 @@
           }
         ],
         "query": "5,10,20,30,40,50,100",
-        "queryValue": "",
-        "skipUrlSync": false,
         "type": "custom"
       }
     ]
