@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 	"time"
 
@@ -59,7 +60,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 
 	err := fetchProperties(
 		loginData["ctx"].(context.Context), loginData["view"].(*view.Manager), loginData["client"].(*vim25.Client),
-		[]string{"VirtualMachine"}, []string{"summary", "runtime", "storage"}, &vms, c.logger,
+		[]string{"VirtualMachine"}, []string{"summary", "runtime", "storage", "snapshot", "snapshot.rootSnapshotList", "snapshot.currentSnapshot"}, &vms, c.logger,
 	)
 	if err != nil {
 		return err
@@ -110,6 +111,33 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 							"vcenter": loginData["target"].(string), "dsmo": datastore.Datastore.Value},
 					), prometheus.GaugeValue, float64(datastore.Committed),
 				)
+			}
+			// Check if the VM has any snapshots, set value of metric to unix timestamp of snapshot creation time
+			if vm.Snapshot != nil {
+				c.logger.Debug("msg", fmt.Sprintf("VM %s has snapshots", vm.Summary.Config.Name), nil)
+				for _, rootSnap := range vm.Snapshot.RootSnapshotList {
+					snapDate := rootSnap.CreateTime.Format(time.RFC3339)
+					// Check snapshot name and description if it contains the string "[keep]". If yes, set keepSnap to true.
+					keepSnap := false
+					if rootSnap.Name != "" {
+						if strings.Contains(rootSnap.Name, "[keep]") {
+							keepSnap = true
+						}
+					}
+					if rootSnap.Description != "" {
+						if strings.Contains(rootSnap.Description, "[keep]") {
+							keepSnap = true
+						}
+					}
+					ch <- prometheus.MustNewConstMetric(
+						prometheus.NewDesc(
+							prometheus.BuildFQName(namespace, vmSubsystem, "snapshot_info"),
+							"Unix timestamp since snapshot creation", nil,
+							map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name,
+								"vcenter": loginData["target"].(string), "snapshot_create_time": snapDate, "snapshot_keep": fmt.Sprintf("%t", keepSnap)},
+						), prometheus.GaugeValue, float64(rootSnap.CreateTime.Unix()),
+					)
+				}
 			}
 		}
 
