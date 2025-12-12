@@ -5,7 +5,7 @@ go 1.25
 require (
 	github.com/prezhdarov/prometheus-exporter v0.1.2
 	github.com/prometheus/client_golang v1.23.2
-	github.com/prometheus/common v0.67.3
+	github.com/prometheus/common v0.67.4
 	github.com/prometheus/exporter-toolkit v0.15.0
 	github.com/vmware/govmomi v0.52.0
 )
