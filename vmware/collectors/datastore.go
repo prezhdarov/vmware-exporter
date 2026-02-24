@@ -92,7 +92,13 @@ func (c *datastoreCollector) Update(ch chan<- prometheus.Metric, namespace strin
 				"Whether the datastore is accessible", nil,
 				map[string]string{"dsmo": datastore.Summary.Datastore.Value, "ds": datastore.Summary.Name,
 					"vcenter": loginData["target"].(string)},
-			), prometheus.GaugeValue, 1.0,
+			), prometheus.GaugeValue,
+			func(accessible bool) float64 {
+				if accessible {
+					return 1
+				}
+				return 0
+			}(datastore.Summary.Accessible),
 		)
 	}
 
