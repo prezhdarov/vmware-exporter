@@ -10,4 +10,4 @@ test/
 ENV/
 env.bak/
 venv.bak/
-
+vendor/

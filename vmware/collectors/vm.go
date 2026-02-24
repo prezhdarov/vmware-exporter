@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
-	"strings"
 	"sync"
 	"time"
 
@@ -23,7 +22,6 @@ const (
 )
 
 var vmCollectorFlag = flag.Bool(fmt.Sprintf("collector.%s", vmSubsystem), collector.DefaultEnabled, fmt.Sprintf("Enable the %s collector (default: %v)", vmSubsystem, collector.DefaultEnabled))
-
 var (
 	cVMCounters = []string{"cpu.usagemhz.average", "cpu.demand.average", "cpu.latency.average", "cpu.entitlement.latest",
 		"cpu.ready.summation", "cpu.readiness.average", "cpu.costop.summation", "cpu.maxlimited.summation",
@@ -116,25 +114,15 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 			if vm.Snapshot != nil {
 				c.logger.Debug("msg", fmt.Sprintf("VM %s has snapshots", vm.Summary.Config.Name), nil)
 				for _, rootSnap := range vm.Snapshot.RootSnapshotList {
+
 					snapDate := rootSnap.CreateTime.Format(time.RFC3339)
-					// Check snapshot name and description if it contains the string "[keep]". If yes, set keepSnap to true.
-					keepSnap := false
-					if rootSnap.Name != "" {
-						if strings.Contains(rootSnap.Name, "[keep]") {
-							keepSnap = true
-						}
-					}
-					if rootSnap.Description != "" {
-						if strings.Contains(rootSnap.Description, "[keep]") {
-							keepSnap = true
-						}
-					}
+
 					ch <- prometheus.MustNewConstMetric(
 						prometheus.NewDesc(
 							prometheus.BuildFQName(namespace, vmSubsystem, "snapshot_info"),
 							"Unix timestamp since snapshot creation", nil,
 							map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name,
-								"vcenter": loginData["target"].(string), "snapshot_create_time": snapDate, "snapshot_keep": fmt.Sprintf("%t", keepSnap)},
+								"vcenter": loginData["target"].(string), "name": rootSnap.Name, "created": snapDate},
 						), prometheus.GaugeValue, float64(rootSnap.CreateTime.Unix()),
 					)
 				}
