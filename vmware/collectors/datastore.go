@@ -85,6 +85,15 @@ func (c *datastoreCollector) Update(ch chan<- prometheus.Metric, namespace strin
 					"vcenter": loginData["target"].(string)},
 			), prometheus.GaugeValue, float64(datastore.Summary.FreeSpace),
 		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(
+				prometheus.BuildFQName(namespace, datastoreSubsystem, "accessible"),
+				"Whether the datastore is accessible", nil,
+				map[string]string{"dsmo": datastore.Summary.Datastore.Value, "ds": datastore.Summary.Name,
+					"vcenter": loginData["target"].(string)},
+			), prometheus.GaugeValue, 1.0,
+		)
 	}
 
 	//for key, _ := range loginData["counters"].(map[string]*types.PerfCounterInfo) {
