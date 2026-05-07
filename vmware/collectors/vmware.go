@@ -77,6 +77,30 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 	counters []string, countersSpec map[string]*types.PerfCounterInfo,
 	targetRefs []types.ManagedObjectReference, targetNames map[string]string) {
 
+	if len(targetRefs) == 0 {
+		logger.Debug("msg", fmt.Sprintf("skipping perfman metrics for %s: no targets", moType), nil)
+		return
+	}
+
+	availableCounters := make([]string, 0, len(counters))
+	missingCounters := make([]string, 0)
+	for _, counter := range counters {
+		if _, ok := countersSpec[counter]; ok {
+			availableCounters = append(availableCounters, counter)
+			continue
+		}
+		missingCounters = append(missingCounters, counter)
+	}
+
+	if len(missingCounters) > 0 {
+		logger.Debug("performance counters are not available on this target", "type", moType, "counters", strings.Join(missingCounters, ","))
+	}
+
+	if len(availableCounters) == 0 {
+		logger.Debug("msg", fmt.Sprintf("skipping perfman metrics for %s: no supported counters", moType), nil)
+		return
+	}
+
 	logger.Debug("msg", fmt.Sprintf("gathering perfman metrics for hostRef %s\n", targetRefs[0]), nil)
 
 	begin := time.Now()
@@ -87,14 +111,16 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 		IntervalId: sampleInterval,                             // 20 seconds
 	}
 
-	sample, err := perfManager.SampleByName(ctx, spec, counters, targetRefs)
+	sample, err := perfManager.SampleByName(ctx, spec, availableCounters, targetRefs)
 	if err != nil {
-		logger.Error("msg", "error sampling the metrics and targtes", fmt.Sprintf("error: %s", err))
+		logger.Error("msg", "error sampling the metrics and targets", fmt.Sprintf("error: %s", err))
+		return
 	}
 
 	metrics, err := perfManager.ToMetricSeries(ctx, sample)
 	if err != nil {
 		logger.Error("msg", "error fetching metrics", fmt.Sprintf("error: %s", err))
+		return
 	}
 
 	logger.Debug("msg", fmt.Sprintf("Time to fetch Perfman for %s: %f\n", moType, time.Since(begin).Seconds()), nil)
@@ -118,6 +144,11 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 		}
 
 		for _, value := range metric.Value {
+
+			counterInfo, ok := countersSpec[value.Name]
+			if !ok {
+				continue
+			}
 
 			if value.Instance != "" {
 
@@ -144,7 +175,7 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 					ch <- prometheus.MustNewConstMetric(
 						prometheus.NewDesc(
 							prometheus.BuildFQName(namespace, subsystem, strings.Replace(value.Name, ".", "_", -1)),
-							fmt.Sprintf("%s in %s ", countersSpec[value.Name].UnitInfo.GetElementDescription().Label, countersSpec[value.Name].NameInfo.GetElementDescription().Summary),
+							fmt.Sprintf("%s in %s ", counterInfo.UnitInfo.GetElementDescription().Label, counterInfo.NameInfo.GetElementDescription().Summary),
 							nil, labelMap,
 						), prometheus.GaugeValue, float64(avg),
 					)
