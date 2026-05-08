@@ -72,7 +72,7 @@ func (vm *VMware) Login(target string, logger *slog.Logger) (map[string]interfac
 
 	//Login into REST API (get session key)
 	if err := govmomiLogin(loginData); err != nil {
-		return loginData, fmt.Errorf("login failed for target %q: %w", target, err)
+		return loginData, err
 	}
 
 	//Fill in the REST inventory
