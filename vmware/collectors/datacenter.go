@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/prezhdarov/prometheus-exporter/collector"
+	"github.com/prezhdarov/prometheus-exporter/pkg/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25"

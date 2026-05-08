@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/prezhdarov/prometheus-exporter/collector"
+	"github.com/prezhdarov/prometheus-exporter/pkg/collector"
 
 	"github.com/vmware/govmomi/performance"
 	"github.com/vmware/govmomi/session/cache"
@@ -72,7 +72,7 @@ func (vm *VMware) Login(target string, logger *slog.Logger) (map[string]interfac
 
 	//Login into REST API (get session key)
 	if err := govmomiLogin(loginData); err != nil {
-		return nil, err
+		return loginData, fmt.Errorf("login failed for target %q: %w", target, err)
 	}
 
 	//Fill in the REST inventory
