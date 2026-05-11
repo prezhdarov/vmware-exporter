@@ -7,7 +7,7 @@ require (
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.67.5
 	github.com/prometheus/exporter-toolkit v0.15.1
-	github.com/vmware/govmomi v0.53.1
+	github.com/vmware/govmomi v0.54.0
 )
 
 require (
