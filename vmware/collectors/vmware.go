@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"strings"
 	"time"
-	
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/performance"
 	"github.com/vmware/govmomi/view"
