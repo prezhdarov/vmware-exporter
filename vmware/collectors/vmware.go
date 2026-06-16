@@ -72,6 +72,80 @@ func fetchProperties(ctx context.Context, viewManager *view.Manager, vmwClient *
 
 }
 
+func emitPerformanceMetrics(
+	ch chan<- prometheus.Metric,
+	vcenter, moType, namespace, subsystem, instance string,
+	countersSpec map[string]*types.PerfCounterInfo,
+	targetNames map[string]string,
+	metrics []performance.EntityMetric,
+) {
+	for _, metric := range metrics {
+		labelMap := map[string]string{"vcenter": vcenter}
+
+		switch {
+		case moType == "HostSystem":
+			labelMap["host"] = targetNames[metric.Entity.Value]
+			labelMap["hostmo"] = metric.Entity.Value
+		case moType == "VirtualMachine":
+			labelMap["vm"] = targetNames[metric.Entity.Value]
+			labelMap["vmmo"] = metric.Entity.Value
+		case moType == "Datastore":
+			labelMap["ds"] = targetNames[metric.Entity.Value]
+			labelMap["dsmo"] = metric.Entity.Value
+		}
+
+		for _, value := range metric.Value {
+			if value.Instance != "" {
+				labelMap["pfinstance"] = value.Instance
+			} else if instance != "" {
+				continue
+			}
+
+			if len(value.Value) == 0 {
+				continue
+			}
+
+			if len(value.Value) != len(metric.SampleInfo) {
+				continue
+			}
+
+			counterInfo, ok := countersSpec[value.Name]
+			if !ok {
+				continue
+			}
+
+			if len(value.Value) == 0 {
+				continue
+			}
+
+			var avg int64
+			for _, subvalue := range value.Value {
+				avg += subvalue
+			}
+			avg = avg / int64(len(value.Value))
+
+			ch <- prometheus.MustNewConstMetric(
+				prometheus.NewDesc(
+					prometheus.BuildFQName(
+						namespace,
+						subsystem,
+						strings.Replace(value.Name, ".", "_", -1),
+					),
+					fmt.Sprintf(
+						"%s in %s ",
+						counterInfo.UnitInfo.GetElementDescription().Label,
+						counterInfo.NameInfo.GetElementDescription().Summary,
+					),
+					nil,
+					labelMap,
+				),
+				prometheus.GaugeValue,
+				float64(avg),
+			)
+		}
+	}
+}
+
 func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger *slog.Logger, sampleCount, sampleInterval int32,
 	perfManager *performance.Manager, vcenter, moType, namespace, subsystem, instance string,
 	counters []string, countersSpec map[string]*types.PerfCounterInfo,
@@ -101,60 +175,17 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 
 	begin = time.Now()
 
-	for _, metric := range metrics {
-
-		labelMap := map[string]string{"vcenter": vcenter}
-
-		switch {
-		case moType == "HostSystem":
-			labelMap["host"] = targetNames[metric.Entity.Value]
-			labelMap["hostmo"] = metric.Entity.Value
-		case moType == "VirtualMachine":
-			labelMap["vm"] = targetNames[metric.Entity.Value]
-			labelMap["vmmo"] = metric.Entity.Value
-		case moType == "Datastore":
-			labelMap["ds"] = targetNames[metric.Entity.Value]
-			labelMap["dsmo"] = metric.Entity.Value
-		}
-
-		for _, value := range metric.Value {
-
-			if value.Instance != "" {
-
-				labelMap["pfinstance"] = value.Instance
-
-			} else if instance != "" {
-				continue //labels["instance"] = "-"
-			}
-
-			if len(value.Value) != 0 {
-
-				if len(value.Value) == len(metric.SampleInfo) {
-
-					avg := 0
-
-					for _, subvalue := range value.Value {
-
-						avg += int(subvalue)
-
-					}
-
-					avg = avg / len(value.Value)
-
-					ch <- prometheus.MustNewConstMetric(
-						prometheus.NewDesc(
-							prometheus.BuildFQName(namespace, subsystem, strings.Replace(value.Name, ".", "_", -1)),
-							fmt.Sprintf("%s in %s ", countersSpec[value.Name].UnitInfo.GetElementDescription().Label, countersSpec[value.Name].NameInfo.GetElementDescription().Summary),
-							nil, labelMap,
-						), prometheus.GaugeValue, float64(avg),
-					)
-
-				}
-			}
-
-		}
-	}
+	emitPerformanceMetrics(
+		ch,
+		vcenter,
+		moType,
+		namespace,
+		subsystem,
+		instance,
+		countersSpec,
+		targetNames,
+		metrics,
+	)
 
 	logger.Debug("msg", fmt.Sprintf("Time to process Perfman for %s: %f\n", moType, time.Since(begin).Seconds()), nil)
-
 }
