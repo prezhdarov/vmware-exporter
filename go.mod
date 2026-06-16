@@ -3,7 +3,11 @@ module github.com/prezhdarov/vmware-exporter
 go 1.26
 
 require (
+<<<<<<< HEAD
 	github.com/prezhdarov/prometheus-exporter v0.1.5
+=======
+	github.com/prezhdarov/prometheus-exporter v0.1.4
+>>>>>>> da85ef7 (go updates)
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.67.5
 	github.com/prometheus/exporter-toolkit v0.16.0
