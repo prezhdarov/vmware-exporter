@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prezhdarov/prometheus-exporter/collector"
+	"github.com/prezhdarov/prometheus-exporter/pkg/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/performance"
 	"github.com/vmware/govmomi/view"

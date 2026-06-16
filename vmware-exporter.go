@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/prezhdarov/prometheus-exporter/config"
-	"github.com/prezhdarov/prometheus-exporter/exporter"
+	"github.com/prezhdarov/prometheus-exporter/pkg/config"
+	"github.com/prezhdarov/prometheus-exporter/pkg/exporter"
 	vmware "github.com/prezhdarov/vmware-exporter/vmware/api"
 	vmwareCollectors "github.com/prezhdarov/vmware-exporter/vmware/collectors"
 
