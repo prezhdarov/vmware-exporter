@@ -77,7 +77,7 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 
 			hostNames[host.Self.Value] = host.Summary.Config.Name
 
-			c.logger.Debug("msg", fmt.Sprintf("gathering metrics for host %s with moRef %s\n", host.Summary.Config.Name, host.Self.Value), nil)
+			c.logger.Debug("gathering metrics for host", "host", host.Summary.Config.Name, "host_moref", host.Self.Value)
 
 			ch <- prometheus.MustNewConstMetric(
 				prometheus.NewDesc(
@@ -140,9 +140,9 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 		}
 	}
 
-	c.logger.Debug("msg", fmt.Sprintf("Time to process PropColletor for Host: %f\n", time.Since(begin).Seconds()), nil)
+	c.logger.Debug("time to process property collector for host", "duration_seconds", time.Since(begin).Seconds())
 
-	c.logger.Debug("msg", fmt.Sprintf("Max samples set to %d\n", loginData["samples"].(int32)), nil)
+	c.logger.Debug("max perf samples configured", "samples", loginData["samples"].(int32))
 
 	begin = time.Now()
 
@@ -172,7 +172,7 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 
 		wg.Wait()
 	}
-	c.logger.Debug("msg", fmt.Sprintf("Time to process PerfMan for Host: %f\n", time.Since(begin).Seconds()), nil)
+	c.logger.Debug("time to process perfman for host", "duration_seconds", time.Since(begin).Seconds())
 
 	return nil
 }

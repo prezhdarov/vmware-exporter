@@ -15,7 +15,7 @@ import (
 )
 
 func Load(logger *slog.Logger) {
-	logger.Info("msg", "Loading VMware vSphere collector set", nil)
+	logger.Info("Loading VMware vSphere collector set")
 }
 
 func inSlice(slice []string, val *string) bool {
@@ -66,7 +66,7 @@ func fetchProperties(ctx context.Context, viewManager *view.Manager, vmwClient *
 		return err
 	}
 
-	logger.Debug("msg", fmt.Sprintf("Time to fetch PropColletor for %s: %f\n", moTypes, time.Since(begin).Seconds()), nil)
+	logger.Debug("time to fetch property collector", "types", moTypes, "duration_seconds", time.Since(begin).Seconds())
 
 	return nil
 
@@ -150,8 +150,17 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 	perfManager *performance.Manager, vcenter, moType, namespace, subsystem, instance string,
 	counters []string, countersSpec map[string]*types.PerfCounterInfo,
 	targetRefs []types.ManagedObjectReference, targetNames map[string]string) {
+	if len(targetRefs) == 0 {
+		logger.Debug("no targets for perfman scrape", "type", moType)
+		return
+	}
 
-	logger.Debug("msg", fmt.Sprintf("gathering perfman metrics for hostRef %s\n", targetRefs[0]), nil)
+	if perfManager == nil {
+		logger.Error("nil performance manager", "type", moType)
+		return
+	}
+
+	logger.Debug("gathering perfman metrics", "target_ref", targetRefs[0], "type", moType)
 
 	begin := time.Now()
 
@@ -163,15 +172,17 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 
 	sample, err := perfManager.SampleByName(ctx, spec, counters, targetRefs)
 	if err != nil {
-		logger.Error("msg", "error sampling the metrics and targtes", fmt.Sprintf("error: %s", err))
+		logger.Error("error sampling metrics and targets", "error", err, "type", moType)
+		return
 	}
 
 	metrics, err := perfManager.ToMetricSeries(ctx, sample)
 	if err != nil {
-		logger.Error("msg", "error fetching metrics", fmt.Sprintf("error: %s", err))
+		logger.Error("error converting perf samples to metric series", "error", err, "type", moType)
+		return
 	}
 
-	logger.Debug("msg", fmt.Sprintf("Time to fetch Perfman for %s: %f\n", moType, time.Since(begin).Seconds()), nil)
+	logger.Debug("time to fetch perfman samples", "type", moType, "duration_seconds", time.Since(begin).Seconds())
 
 	begin = time.Now()
 
@@ -187,5 +198,5 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 		metrics,
 	)
 
-	logger.Debug("msg", fmt.Sprintf("Time to process Perfman for %s: %f\n", moType, time.Since(begin).Seconds()), nil)
+	logger.Debug("time to process perfman metrics", "type", moType, "duration_seconds", time.Since(begin).Seconds())
 }

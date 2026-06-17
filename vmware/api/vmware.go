@@ -49,7 +49,7 @@ func NewAPI() *VMware {
 
 func Load(logger *slog.Logger) {
 
-	logger.Info("msg", "Loading VMware vSphere API", nil)
+	logger.Info("Loading VMware vSphere API")
 
 }
 
