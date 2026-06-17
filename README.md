@@ -1,6 +1,8 @@
 
 # vmware-exporter
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/prezhdarov/vmware-exporter)](https://goreportcard.com/report/github.com/prezhdarov/vmware-exporter)
+
 This is a simple prometheus exporter that collects various metrics from a vCenter. 
 
 
