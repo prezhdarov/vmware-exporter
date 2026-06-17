@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -54,7 +53,7 @@ func main() {
 
 	logger := promslog.New(config.SetLogger(logFormat, logLevel))
 
-	logger.Debug("disable exporter target is", fmt.Sprintf("%t", *disableExporterTarget), nil)
+	logger.Debug("exporter target setting", "disabled", *disableExporterTarget)
 
 	vmware.Load(logger)
 
@@ -75,12 +74,12 @@ func main() {
 			</html>`))
 	})
 
-	logger.Info("msg", "listening on", "address", *listenAddress, nil)
+	logger.Info("listening on", "address", *listenAddress)
 
 	server := &http.Server{}
 
 	if err := web.ListenAndServe(server, webConfig(listenAddress), logger); err != nil {
-		logger.Error(fmt.Sprintf("error: %s", err))
+		logger.Error("listen and serve failed", "error", err)
 		os.Exit(1)
 	}
 

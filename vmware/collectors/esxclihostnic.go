@@ -105,7 +105,7 @@ func esxcliHostNicInfo(ch chan<- prometheus.Metric, logger *slog.Logger, ctx con
 
 	mme, err := esxcli.GetHostMME(ctx, client, &host.Self)
 	if err != nil {
-		logger.Error("msg", "error retrieving host MME", fmt.Sprintf("error: %s", err))
+		logger.Error("error retrieving host MME", "error", err, "host", host.Name)
 		return
 	}
 
@@ -118,7 +118,7 @@ func esxcliHostNicInfo(ch chan<- prometheus.Metric, logger *slog.Logger, ctx con
 
 	err = esxcli.GetSOAP(ctx, client, &request, &data)
 	if err != nil {
-		logger.Error("msg", "error retrieving nic list", fmt.Sprintf("error: %s", err))
+		logger.Error("error retrieving nic list", "error", err, "host", host.Name)
 		return
 	}
 
@@ -153,7 +153,7 @@ func esxcliGetNicInfo(ch chan<- prometheus.Metric, logger *slog.Logger, ctx cont
 
 	err := esxcli.GetSOAP(ctx, client, &request, &data)
 	if err != nil {
-		logger.Error("msg", "error fetching soap data", fmt.Sprintf("error: %s", err), "host", hostName)
+		logger.Error("error fetching soap data", "error", err, "host", *hostName)
 		return
 	}
 
