@@ -57,7 +57,11 @@ func fetchProperties(ctx context.Context, viewManager *view.Manager, vmwClient *
 
 	}
 
-	defer view.Destroy(ctx)
+	defer func() {
+		if err := view.Destroy(ctx); err != nil {
+			logger.Error("failed to destroy container view", "error", err)
+		}
+	}()
 
 	begin := time.Now()
 
@@ -82,14 +86,14 @@ func emitPerformanceMetrics(
 	for _, metric := range metrics {
 		labelMap := map[string]string{"vcenter": vcenter}
 
-		switch {
-		case moType == "HostSystem":
+		switch moType {
+		case "HostSystem":
 			labelMap["host"] = targetNames[metric.Entity.Value]
 			labelMap["hostmo"] = metric.Entity.Value
-		case moType == "VirtualMachine":
+		case "VirtualMachine":
 			labelMap["vm"] = targetNames[metric.Entity.Value]
 			labelMap["vmmo"] = metric.Entity.Value
-		case moType == "Datastore":
+		case "Datastore":
 			labelMap["ds"] = targetNames[metric.Entity.Value]
 			labelMap["dsmo"] = metric.Entity.Value
 		}
@@ -129,7 +133,7 @@ func emitPerformanceMetrics(
 					prometheus.BuildFQName(
 						namespace,
 						subsystem,
-						strings.Replace(value.Name, ".", "_", -1),
+						strings.ReplaceAll(value.Name, ".", "_"),
 					),
 					fmt.Sprintf(
 						"%s in %s ",

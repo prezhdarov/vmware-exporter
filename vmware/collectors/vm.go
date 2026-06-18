@@ -139,22 +139,22 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 
 		wg.Add(2)
 		for i := 0; i < 2; i++ {
-			switch {
-			case i == 0:
-				go func(i int) {
+			switch i {
+			case 0:
+				go func() {
 					scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int32), loginData["interval"].(int32), loginData["perf"].(*performance.Manager),
 						loginData["target"].(string), "VirtualMachine", namespace, vmSubsystem, "", cVMCounters,
 						loginData["counters"].(map[string]*types.PerfCounterInfo), vmRefs, vmNames)
 					wg.Done()
-				}(i)
+				}()
 
-			case i == 1:
-				go func(i int) {
+			case 1:
+				go func() {
 					scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int32), loginData["interval"].(int32), loginData["perf"].(*performance.Manager),
 						loginData["target"].(string), "VirtualMachine", namespace, vmSubsystem, "*", iVMCounters,
 						loginData["counters"].(map[string]*types.PerfCounterInfo), vmRefs, vmNames)
 					wg.Done()
-				}(i)
+				}()
 			}
 
 		}

@@ -63,15 +63,17 @@ func main() {
 	http.HandleFunc("/probe", func(w http.ResponseWriter, r *http.Request) {
 		exporter.CreateHandleFunc(w, r, namespace, "", logger)
 	})
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`
+	http.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		if _, err := w.Write([]byte(`
 			<head><title>VMware vSphere Exporter</title></head>
 			<body>
 			<h1>VMware vSphere Exporter</h1>
 			<p><a href="/metrics">Metrics</a></p>
 			<p><a href="/probe">Probe</a></p>
 			</body>
-			</html>`))
+			</html>`)); err != nil {
+			logger.Error("failed to write index response", "error", err)
+		}
 	})
 
 	logger.Info("listening on", "address", *listenAddress)

@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/vmware/govmomi/performance"
+	dto "github.com/prometheus/client_model/go"
 	"github.com/vmware/govmomi"
+	"github.com/vmware/govmomi/performance"
 	"github.com/vmware/govmomi/simulator"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25/mo"

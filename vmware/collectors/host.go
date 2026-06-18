@@ -150,8 +150,8 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 
 		wg.Add(2)
 		for i := 0; i < 2; i++ {
-			switch {
-			case i == 0:
+			switch i {
+			case 0:
 				go func(i int) {
 					scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int32), loginData["interval"].(int32), loginData["perf"].(*performance.Manager),
 						loginData["target"].(string), "HostSystem", namespace, hostSubsystem, "", cHostCounters,
@@ -159,7 +159,7 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 					wg.Done()
 				}(i)
 
-			case i == 1:
+			case 1:
 				go func(i int) {
 					scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int32), loginData["interval"].(int32), loginData["perf"].(*performance.Manager),
 						loginData["target"].(string), "HostSystem", namespace, hostSubsystem, "*", iHostCounters,
