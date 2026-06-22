@@ -43,6 +43,60 @@ func TestHostCollectorUpdateEmitsHostInfo(t *testing.T) {
 	}
 }
 
+func TestHostCollectorUpdateEmitsHostStateMetrics(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	loginData, cleanup := setupCollectorLoginData(t)
+	defer cleanup()
+
+	collector, err := NewhostCollector(logger)
+	if err != nil {
+		t.Fatalf("NewhostCollector() returned error: %v", err)
+	}
+
+	ch := make(chan prometheus.Metric, 20000)
+	if err := collector.Update(ch, "vmware", nil, loginData, map[string]string{}); err != nil {
+		t.Fatalf("host Update() returned error: %v", err)
+	}
+
+	metrics := drainMetrics(ch)
+
+	if !hasMetricWithLabels(metrics, "vmware_host_powered_on", map[string]string{"vcenter": loginData["target"].(string), "host": "", "hostmo": ""}) {
+		t.Fatal("expected vmware_host_powered_on metric with host labels")
+	}
+
+	if !hasMetricWithLabels(metrics, "vmware_host_connected", map[string]string{"vcenter": loginData["target"].(string), "host": "", "hostmo": ""}) {
+		t.Fatal("expected vmware_host_connected metric with host labels")
+	}
+
+	if !hasMetricWithLabels(metrics, "vmware_host_maintenance_mode", map[string]string{"vcenter": loginData["target"].(string), "host": "", "hostmo": ""}) {
+		t.Fatal("expected vmware_host_maintenance_mode metric with host labels")
+	}
+
+	found, binary := metricsHaveBinaryGaugeValues(metrics, "vmware_host_powered_on")
+	if !found {
+		t.Fatal("expected vmware_host_powered_on metric values")
+	}
+	if !binary {
+		t.Fatal("expected vmware_host_powered_on metric values to be binary")
+	}
+
+	found, binary = metricsHaveBinaryGaugeValues(metrics, "vmware_host_connected")
+	if !found {
+		t.Fatal("expected vmware_host_connected metric values")
+	}
+	if !binary {
+		t.Fatal("expected vmware_host_connected metric values to be binary")
+	}
+
+	found, binary = metricsHaveBinaryGaugeValues(metrics, "vmware_host_maintenance_mode")
+	if !found {
+		t.Fatal("expected vmware_host_maintenance_mode metric values")
+	}
+	if !binary {
+		t.Fatal("expected vmware_host_maintenance_mode metric values to be binary")
+	}
+}
+
 func TestVMCollectorUpdateEmitsVMInfo(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	loginData, cleanup := setupCollectorLoginData(t)
@@ -65,6 +119,36 @@ func TestVMCollectorUpdateEmitsVMInfo(t *testing.T) {
 
 	if !hasMetricWithLabels(metrics, "vmware_vm_info", map[string]string{"vcenter": loginData["target"].(string), "vm": "", "vmmo": "", "hostmo": ""}) {
 		t.Fatal("expected vmware_vm_info metric with vm labels")
+	}
+}
+
+func TestVMCollectorUpdateEmitsVMPoweredStateMetric(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	loginData, cleanup := setupCollectorLoginData(t)
+	defer cleanup()
+
+	collector, err := NewvmCollector(logger)
+	if err != nil {
+		t.Fatalf("NewvmCollector() returned error: %v", err)
+	}
+
+	ch := make(chan prometheus.Metric, 30000)
+	if err := collector.Update(ch, "vmware", nil, loginData, map[string]string{}); err != nil {
+		t.Fatalf("vm Update() returned error: %v", err)
+	}
+
+	metrics := drainMetrics(ch)
+
+	if !hasMetricWithLabels(metrics, "vmware_vm_powered_on", map[string]string{"vcenter": loginData["target"].(string), "vm": "", "vmmo": "", "hostmo": ""}) {
+		t.Fatal("expected vmware_vm_powered_on metric with vm labels")
+	}
+
+	found, binary := metricsHaveBinaryGaugeValues(metrics, "vmware_vm_powered_on")
+	if !found {
+		t.Fatal("expected vmware_vm_powered_on metric values")
+	}
+	if !binary {
+		t.Fatal("expected vmware_vm_powered_on metric values to be binary")
 	}
 }
 
@@ -322,4 +406,33 @@ func hasMetricWithLabels(metrics []prometheus.Metric, fqName string, requiredLab
 	}
 
 	return false
+}
+
+func metricsHaveBinaryGaugeValues(metrics []prometheus.Metric, fqName string) (bool, bool) {
+	found := false
+
+	for _, metric := range metrics {
+		desc := metric.Desc().String()
+		if !strings.Contains(desc, `fqName: "`+fqName+`"`) {
+			continue
+		}
+
+		pb := &dto.Metric{}
+		if err := metric.Write(pb); err != nil {
+			continue
+		}
+
+		if pb.Gauge == nil {
+			continue
+		}
+
+		found = true
+
+		value := pb.Gauge.GetValue()
+		if value != 0 && value != 1 {
+			return found, false
+		}
+	}
+
+	return found, true
 }
