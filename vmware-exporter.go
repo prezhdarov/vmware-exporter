@@ -2,12 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"net/http"
 	"os"
 
-	"github.com/prezhdarov/prometheus-exporter/config"
-	"github.com/prezhdarov/prometheus-exporter/exporter"
+	"github.com/prezhdarov/prometheus-exporter/pkg/config"
+	"github.com/prezhdarov/prometheus-exporter/pkg/exporter"
 	vmware "github.com/prezhdarov/vmware-exporter/vmware/api"
 	vmwareCollectors "github.com/prezhdarov/vmware-exporter/vmware/collectors"
 
@@ -54,7 +53,7 @@ func main() {
 
 	logger := promslog.New(config.SetLogger(logFormat, logLevel))
 
-	logger.Debug("disable exporter target is", fmt.Sprintf("%t", *disableExporterTarget), nil)
+	logger.Debug("exporter target setting", "disabled", *disableExporterTarget)
 
 	vmware.Load(logger)
 
@@ -75,12 +74,12 @@ func main() {
 			</html>`))
 	})
 
-	logger.Info("msg", "listening on", "address", *listenAddress, nil)
+	logger.Info("listening on", "address", *listenAddress)
 
 	server := &http.Server{}
 
 	if err := web.ListenAndServe(server, webConfig(listenAddress), logger); err != nil {
-		logger.Error(fmt.Sprintf("error: %s", err))
+		logger.Error("listen and serve failed", "error", err)
 		os.Exit(1)
 	}
 

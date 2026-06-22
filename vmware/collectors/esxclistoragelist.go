@@ -10,7 +10,7 @@ import (
 
 	"github.com/prezhdarov/vmware-exporter/vmware/esxcli"
 
-	"github.com/prezhdarov/prometheus-exporter/collector"
+	"github.com/prezhdarov/prometheus-exporter/pkg/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25"
@@ -81,7 +81,7 @@ func (c *esxclistoragelistCollector) Update(ch chan<- prometheus.Metric, namespa
 		}
 	}
 
-	c.logger.Debug("msg", fmt.Sprintf("dispatched %d StorageDriver routines", dCounter), nil)
+	c.logger.Debug("dispatched storage driver routines", "count", dCounter)
 
 	wg.Wait()
 
@@ -99,7 +99,7 @@ func esxcliStorageDriverInfo(ch chan<- prometheus.Metric, logger *slog.Logger, c
 
 	mme, err := esxcli.GetHostMME(ctx, client, &host.Self)
 	if err != nil {
-		logger.Error("msg", "error retrieving host MME", fmt.Sprintf("error: %s", err), "host", host.Name)
+		logger.Error("error retrieving host MME", "error", err, "host", host.Name)
 		return
 	}
 
@@ -132,7 +132,7 @@ func esxcliStorageDriverInfo(ch chan<- prometheus.Metric, logger *slog.Logger, c
 	*/
 	err = esxcli.GetSOAP(ctx, client, &request, &data)
 	if err != nil {
-		logger.Error("msg", "error fetching soap data", fmt.Sprintf("error: %s", err))
+		logger.Error("error fetching soap data", "error", err, "host", host.Name)
 		return
 	}
 

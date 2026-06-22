@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prezhdarov/prometheus-exporter/collector"
+	"github.com/prezhdarov/prometheus-exporter/pkg/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/performance"
 	"github.com/vmware/govmomi/view"
@@ -112,7 +112,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 			}
 			// Check if the VM has any snapshots, set value of metric to unix timestamp of snapshot creation time
 			if vm.Snapshot != nil {
-				c.logger.Debug("msg", fmt.Sprintf("VM %s has snapshots", vm.Summary.Config.Name), nil)
+				c.logger.Debug("vm has snapshots", "vm", vm.Summary.Config.Name, "vm_moref", vm.Self.Value)
 				for _, rootSnap := range vm.Snapshot.RootSnapshotList {
 
 					snapDate := rootSnap.CreateTime.Format(time.RFC3339)
@@ -131,7 +131,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 
 	}
 
-	c.logger.Debug("msg", fmt.Sprintf("Time to process PropColletor for VM: %f\n", time.Since(begin).Seconds()), nil)
+	c.logger.Debug("time to process property collector for vm", "duration_seconds", time.Since(begin).Seconds())
 
 	begin = time.Now()
 
@@ -163,7 +163,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 
 	}
 
-	c.logger.Debug("msg", fmt.Sprintf("Time to process PerfMan for VM: %f\n", time.Since(begin).Seconds()), nil)
+	c.logger.Debug("time to process perfman for vm", "duration_seconds", time.Since(begin).Seconds())
 
 	return nil
 }
