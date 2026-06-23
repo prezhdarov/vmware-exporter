@@ -3,6 +3,7 @@ package vmware
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -162,12 +163,19 @@ func request(method, url string, headers map[string]string, login bool) (int, st
 
 	responseHeaders := resp.Header.Get("cookie")
 
-	defer resp.Body.Close()
+	// Handle read and close errors explicitly to avoid losing late I/O failures.
+	body, readErr := io.ReadAll(resp.Body)
+	closeErr := resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	if readErr != nil {
+		if closeErr != nil {
+			return 0, "", nil, errors.Join(readErr, closeErr)
+		}
+		return 0, "", nil, readErr
+	}
 
-	if err != nil {
-		return 0, "", nil, err
+	if closeErr != nil {
+		return 0, "", nil, closeErr
 	}
 
 	return resp.StatusCode, responseHeaders, body, nil
