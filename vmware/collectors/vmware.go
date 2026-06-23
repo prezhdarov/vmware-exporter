@@ -164,13 +164,29 @@ func scrapePerformance(ctx context.Context, ch chan<- prometheus.Metric, logger 
 
 	begin := time.Now()
 
+	requestedCounters := len(counters)
+	supportedCounters := make([]string, 0, requestedCounters)
+	for _, counter := range counters {
+		if _, ok := countersSpec[counter]; ok {
+			supportedCounters = append(supportedCounters, counter)
+			continue
+		}
+
+		logger.Debug("performance counter not available, skipping", "counter", counter, "type", moType)
+	}
+
+	if len(supportedCounters) == 0 {
+		logger.Debug("no supported performance counters for scrape", "type", moType, "requested_counters", requestedCounters)
+		return
+	}
+
 	spec := types.PerfQuerySpec{
 		MaxSample:  sampleCount,                                // Number of samples to fetch - if samples are fetched every 20s only one is needed.
 		MetricId:   []types.PerfMetricId{{Instance: instance}}, //Instance takes either null string or * (or in fact any name of an performance manager metric instance)
 		IntervalId: sampleInterval,                             // 20 seconds
 	}
 
-	sample, err := perfManager.SampleByName(ctx, spec, counters, targetRefs)
+	sample, err := perfManager.SampleByName(ctx, spec, supportedCounters, targetRefs)
 	if err != nil {
 		logger.Error("error sampling metrics and targets", "error", err, "type", moType)
 		return
