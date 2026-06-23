@@ -6,7 +6,7 @@ require (
 	github.com/prezhdarov/prometheus-exporter v0.1.5
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/client_model v0.6.2
-	github.com/prometheus/common v0.68.1
+	github.com/prometheus/common v0.69.0
 	github.com/prometheus/exporter-toolkit v0.16.0
 	github.com/vmware/govmomi v0.54.1
 )
