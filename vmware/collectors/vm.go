@@ -68,8 +68,29 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 	wg := sync.WaitGroup{}
 
 	for _, vm := range vms {
+		vmLabels := map[string]string{
+			"vmmo":    vm.Self.Value,
+			"vm":      vm.Summary.Config.Name,
+			"hostmo":  vm.Runtime.Host.Value,
+			"vcenter": loginData["target"].(string),
+		}
 
-		if vm.Runtime.PowerState == "poweredOn" {
+		vmPoweredOn := vm.Runtime.PowerState == "poweredOn"
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(
+				prometheus.BuildFQName(namespace, vmSubsystem, "powered_on"),
+				"Whether the virtual machine is powered on", nil, vmLabels,
+			), prometheus.GaugeValue,
+			func(poweredOn bool) float64 {
+				if poweredOn {
+					return 1
+				}
+				return 0
+			}(vmPoweredOn),
+		)
+
+		if vmPoweredOn {
 
 			vmRefs = append(vmRefs, vm.Self)
 
