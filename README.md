@@ -34,6 +34,7 @@ The options available are:
 | -collector.datastore | Enables or disables Datastore metrics collection (default: enabled) |
 | -collector.host | Enables or disables Host metrics collection (default: enabled) |
 | -collector.vm | Enables or disables Virtual Machine metrics collection (default: enabled) |
+| -collector.tags | Enables or disables vSphere tag collection (default: enabled). Emits `vmware_vm_tag{vmmo,vm,category,tag}` = 1 for every tag attached to a VM - join it onto other VM metrics via the `vmmo` label |
 | -collector.esxcli.host.nic | Collects ESXi NIC firmware information using esxcli invoked through the vCenter (default: disabled) |
 | -collector.esxcli.storage | Collects ESXi storage firmware information using esxcli invoked through the vCenter (default: disabled) |
 | -vmware.granularity | The frequency of the sampled data. Default is 20s (default 20) |
