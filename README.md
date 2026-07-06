@@ -33,7 +33,7 @@ The options available are:
 | -collector.cluster | Enables or disables Cluster metrics collection (default: enabled) |
 | -collector.datastore | Enables or disables Datastore metrics collection (default: enabled) |
 | -collector.host | Enables or disables Host metrics collection (default: enabled) |
-| -collector.vm | Enables or disables Virtual Machine metrics collection (default: enabled) |
+| -collector.vm | Enables or disables Virtual Machine metrics collection (default: enabled). Also emits `vmware_vm_disk_capacity{vmmo,vm,disk,label}` = configured size in bytes for every virtual disk, where `disk` is a stable 0-based index (controller bus, then unit number) and `label` is the vSphere device label (e.g. "Hard disk 1") |
 | -collector.tags | Enables or disables vSphere tag collection (default: enabled). Emits `vmware_vm_tag{vmmo,vm,category,tag}` = 1 for every tag attached to a VM - join it onto other VM metrics via the `vmmo` label |
 | -collector.esxcli.host.nic | Collects ESXi NIC firmware information using esxcli invoked through the vCenter (default: disabled) |
 | -collector.esxcli.storage | Collects ESXi storage firmware information using esxcli invoked through the vCenter (default: disabled) |

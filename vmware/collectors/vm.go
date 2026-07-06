@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
+	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -58,7 +60,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 
 	err := fetchProperties(
 		loginData["ctx"].(context.Context), loginData["view"].(*view.Manager), loginData["client"].(*vim25.Client),
-		[]string{"VirtualMachine"}, []string{"summary", "runtime", "storage", "snapshot", "snapshot.rootSnapshotList", "snapshot.currentSnapshot"}, &vms, c.logger,
+		[]string{"VirtualMachine"}, []string{"summary", "runtime", "storage", "snapshot", "snapshot.rootSnapshotList", "snapshot.currentSnapshot", "config.hardware.device"}, &vms, c.logger,
 	)
 	if err != nil {
 		return err
@@ -104,11 +106,67 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 				ch <- prometheus.MustNewConstMetric(
 					prometheus.NewDesc(
 						prometheus.BuildFQName(namespace, vmSubsystem, "datastore_capacity_used"),
-						"Virtual memory configured in MB", nil,
+						"Capacity used by the VM on this datastore in bytes", nil,
 						map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name,
 							"vcenter": loginData["target"].(string), "dsmo": datastore.Datastore.Value},
 					), prometheus.GaugeValue, float64(datastore.Committed),
 				)
+			}
+
+			if vm.Config != nil {
+
+				busNumbers := make(map[int32]int32)
+				disks := make([]*types.VirtualDisk, 0)
+
+				for _, device := range vm.Config.Hardware.Device {
+					if ctrl, ok := device.(types.BaseVirtualController); ok {
+						vc := ctrl.GetVirtualController()
+						busNumbers[vc.Key] = vc.BusNumber
+					}
+					if disk, ok := device.(*types.VirtualDisk); ok {
+						disks = append(disks, disk)
+					}
+				}
+
+				// Stable "disk 0, disk 1, ..." ordering: controller bus, then unit number, then device key
+				sort.Slice(disks, func(i, j int) bool {
+					if bi, bj := busNumbers[disks[i].ControllerKey], busNumbers[disks[j].ControllerKey]; bi != bj {
+						return bi < bj
+					}
+					var ui, uj int32
+					if disks[i].UnitNumber != nil {
+						ui = *disks[i].UnitNumber
+					}
+					if disks[j].UnitNumber != nil {
+						uj = *disks[j].UnitNumber
+					}
+					if ui != uj {
+						return ui < uj
+					}
+					return disks[i].Key < disks[j].Key
+				})
+
+				for i, disk := range disks {
+
+					capacity := disk.CapacityInBytes
+					if capacity == 0 {
+						capacity = disk.CapacityInKB * 1024
+					}
+
+					label := ""
+					if disk.DeviceInfo != nil {
+						label = disk.DeviceInfo.GetDescription().Label
+					}
+
+					ch <- prometheus.MustNewConstMetric(
+						prometheus.NewDesc(
+							prometheus.BuildFQName(namespace, vmSubsystem, "disk_capacity"),
+							"Configured virtual disk capacity in bytes", nil,
+							map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name,
+								"vcenter": loginData["target"].(string), "disk": strconv.Itoa(i), "label": label},
+						), prometheus.GaugeValue, float64(capacity),
+					)
+				}
 			}
 			// Check if the VM has any snapshots, set value of metric to unix timestamp of snapshot creation time
 			if vm.Snapshot != nil {
