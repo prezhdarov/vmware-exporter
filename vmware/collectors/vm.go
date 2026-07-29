@@ -46,6 +46,14 @@ func NewvmCollector(logger *slog.Logger) (collector.Collector, error) {
 	return &vmCollector{logger}, nil
 }
 
+func hostMOFromRuntime(runtime types.VirtualMachineRuntimeInfo) string {
+	if runtime.Host == nil {
+		return ""
+	}
+
+	return runtime.Host.Value
+}
+
 func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clientAPI collector.ClientAPI, loginData map[string]interface{}, params map[string]string) error {
 
 	var (
@@ -68,10 +76,12 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 	wg := sync.WaitGroup{}
 
 	for _, vm := range vms {
+		hostMO := hostMOFromRuntime(vm.Runtime)
+
 		vmLabels := map[string]string{
 			"vmmo":    vm.Self.Value,
 			"vm":      vm.Summary.Config.Name,
-			"hostmo":  vm.Runtime.Host.Value,
+			"hostmo":  hostMO,
 			"vcenter": loginData["target"].(string),
 		}
 
@@ -100,7 +110,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, vmSubsystem, "info"),
 					"This is basic vm info to be used for parent reference", nil,
-					map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": vm.Runtime.Host.Value, "vcenter": loginData["target"].(string)},
+					map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": hostMO, "vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, 1.0,
 			)
 
@@ -109,14 +119,14 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 			ch <- prometheus.MustNewConstMetric(
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, vmSubsystem, "cpu_corecount"),
-					"Number of virtual CPUs", nil, map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": vm.Runtime.Host.Value, "vcenter": loginData["target"].(string)},
+					"Number of virtual CPUs", nil, map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": hostMO, "vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, float64(vm.Summary.Config.NumCpu),
 			)
 
 			ch <- prometheus.MustNewConstMetric(
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, vmSubsystem, "mem_capacity"),
-					"Virtual memory configured in MB", nil, map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": vm.Runtime.Host.Value, "vcenter": loginData["target"].(string)},
+					"Virtual memory configured in MB", nil, map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": hostMO, "vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, float64(vm.Summary.Config.MemorySizeMB),
 			)
 

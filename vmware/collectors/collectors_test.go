@@ -18,6 +18,24 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 )
 
+func TestHostMOFromRuntimeReturnsEmptyWhenHostNil(t *testing.T) {
+	runtime := types.VirtualMachineRuntimeInfo{Host: nil}
+
+	if got := hostMOFromRuntime(runtime); got != "" {
+		t.Fatalf("expected empty host managed object reference, got %q", got)
+	}
+}
+
+func TestHostMOFromRuntimeReturnsHostValue(t *testing.T) {
+	runtime := types.VirtualMachineRuntimeInfo{
+		Host: &types.ManagedObjectReference{Type: "HostSystem", Value: "host-42"},
+	}
+
+	if got := hostMOFromRuntime(runtime); got != "host-42" {
+		t.Fatalf("expected host-42, got %q", got)
+	}
+}
+
 func TestHostCollectorUpdateEmitsHostInfo(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	loginData, cleanup := setupCollectorLoginData(t)
