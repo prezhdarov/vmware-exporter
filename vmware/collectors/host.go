@@ -70,8 +70,56 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 	wg := sync.WaitGroup{}
 
 	for _, host := range hosts {
+		hostLabels := map[string]string{
+			"hostmo":  host.Self.Value,
+			"host":    host.Summary.Config.Name,
+			"vcenter": loginData["target"].(string),
+		}
 
-		if host.Runtime.PowerState == "poweredOn" && host.Runtime.ConnectionState == "connected" && !host.Runtime.InMaintenanceMode {
+		hostPoweredOn := host.Runtime.PowerState == "poweredOn"
+		hostConnected := host.Runtime.ConnectionState == "connected"
+		hostMaintenanceMode := host.Runtime.InMaintenanceMode
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(
+				prometheus.BuildFQName(namespace, hostSubsystem, "powered_on"),
+				"Whether the host is powered on", nil, hostLabels,
+			), prometheus.GaugeValue,
+			func(poweredOn bool) float64 {
+				if poweredOn {
+					return 1
+				}
+				return 0
+			}(hostPoweredOn),
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(
+				prometheus.BuildFQName(namespace, hostSubsystem, "connected"),
+				"Whether the host is connected", nil, hostLabels,
+			), prometheus.GaugeValue,
+			func(connected bool) float64 {
+				if connected {
+					return 1
+				}
+				return 0
+			}(hostConnected),
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(
+				prometheus.BuildFQName(namespace, hostSubsystem, "maintenance_mode"),
+				"Whether the host is in maintenance mode", nil, hostLabels,
+			), prometheus.GaugeValue,
+			func(maintenanceMode bool) float64 {
+				if maintenanceMode {
+					return 1
+				}
+				return 0
+			}(hostMaintenanceMode),
+		)
+
+		if hostPoweredOn && hostConnected && !hostMaintenanceMode {
 
 			hostRefs = append(hostRefs, host.Self)
 
@@ -106,8 +154,6 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 						"vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, 1.0,
 			)
-
-			hostLabels := map[string]string{"hostmo": host.Self.Value, "host": host.Summary.Config.Name, "vcenter": loginData["target"].(string)}
 
 			ch <- prometheus.MustNewConstMetric(
 				prometheus.NewDesc(
@@ -152,20 +198,20 @@ func (c *hostCollector) Update(ch chan<- prometheus.Metric, namespace string, cl
 		for i := 0; i < 2; i++ {
 			switch i {
 			case 0:
-				go func(i int) {
+				go func() {
 					scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int32), loginData["interval"].(int32), loginData["perf"].(*performance.Manager),
 						loginData["target"].(string), "HostSystem", namespace, hostSubsystem, "", cHostCounters,
 						loginData["counters"].(map[string]*types.PerfCounterInfo), hostRefs, hostNames)
 					wg.Done()
-				}(i)
+				}()
 
 			case 1:
-				go func(i int) {
+				go func() {
 					scrapePerformance(loginData["ctx"].(context.Context), ch, c.logger, loginData["samples"].(int32), loginData["interval"].(int32), loginData["perf"].(*performance.Manager),
 						loginData["target"].(string), "HostSystem", namespace, hostSubsystem, "*", iHostCounters,
 						loginData["counters"].(map[string]*types.PerfCounterInfo), hostRefs, hostNames)
 					wg.Done()
-				}(i)
+				}()
 			}
 
 		}

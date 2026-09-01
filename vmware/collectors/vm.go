@@ -46,6 +46,14 @@ func NewvmCollector(logger *slog.Logger) (collector.Collector, error) {
 	return &vmCollector{logger}, nil
 }
 
+func hostMOFromRuntime(runtime types.VirtualMachineRuntimeInfo) string {
+	if runtime.Host == nil {
+		return ""
+	}
+
+	return runtime.Host.Value
+}
+
 func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clientAPI collector.ClientAPI, loginData map[string]interface{}, params map[string]string) error {
 
 	var (
@@ -68,8 +76,31 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 	wg := sync.WaitGroup{}
 
 	for _, vm := range vms {
+		hostMO := hostMOFromRuntime(vm.Runtime)
 
-		if vm.Runtime.PowerState == "poweredOn" {
+		vmLabels := map[string]string{
+			"vmmo":    vm.Self.Value,
+			"vm":      vm.Summary.Config.Name,
+			"hostmo":  hostMO,
+			"vcenter": loginData["target"].(string),
+		}
+
+		vmPoweredOn := vm.Runtime.PowerState == "poweredOn"
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(
+				prometheus.BuildFQName(namespace, vmSubsystem, "powered_on"),
+				"Whether the virtual machine is powered on", nil, vmLabels,
+			), prometheus.GaugeValue,
+			func(poweredOn bool) float64 {
+				if poweredOn {
+					return 1
+				}
+				return 0
+			}(vmPoweredOn),
+		)
+
+		if vmPoweredOn {
 
 			vmRefs = append(vmRefs, vm.Self)
 
@@ -79,7 +110,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, vmSubsystem, "info"),
 					"This is basic vm info to be used for parent reference", nil,
-					map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": vm.Runtime.Host.Value, "vcenter": loginData["target"].(string)},
+					map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": hostMO, "vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, 1.0,
 			)
 
@@ -88,14 +119,14 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 			ch <- prometheus.MustNewConstMetric(
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, vmSubsystem, "cpu_corecount"),
-					"Number of virtual CPUs", nil, map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": vm.Runtime.Host.Value, "vcenter": loginData["target"].(string)},
+					"Number of virtual CPUs", nil, map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": hostMO, "vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, float64(vm.Summary.Config.NumCpu),
 			)
 
 			ch <- prometheus.MustNewConstMetric(
 				prometheus.NewDesc(
 					prometheus.BuildFQName(namespace, vmSubsystem, "mem_capacity"),
-					"Virtual memory configured in MB", nil, map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": vm.Runtime.Host.Value, "vcenter": loginData["target"].(string)},
+					"Virtual memory configured in MB", nil, map[string]string{"vmmo": vm.Self.Value, "vm": vm.Summary.Config.Name, "hostmo": hostMO, "vcenter": loginData["target"].(string)},
 				), prometheus.GaugeValue, float64(vm.Summary.Config.MemorySizeMB),
 			)
 
@@ -112,7 +143,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 			}
 			// Check if the VM has any snapshots, set value of metric to unix timestamp of snapshot creation time
 			if vm.Snapshot != nil {
-				c.logger.Debug("vm has snapshots", "vm", vm.Summary.Config.Name, "vm_moref", vm.Self.Value)
+				c.logger.Debug("msg", fmt.Sprintf("VM %s has snapshots", vm.Summary.Config.Name), nil)
 				for _, rootSnap := range vm.Snapshot.RootSnapshotList {
 
 					snapDate := rootSnap.CreateTime.Format(time.RFC3339)
@@ -131,7 +162,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 
 	}
 
-	c.logger.Debug("time to process property collector for vm", "duration_seconds", time.Since(begin).Seconds())
+	c.logger.Debug("msg", fmt.Sprintf("Time to process PropColletor for VM: %f\n", time.Since(begin).Seconds()), nil)
 
 	begin = time.Now()
 
@@ -163,7 +194,7 @@ func (c *vmCollector) Update(ch chan<- prometheus.Metric, namespace string, clie
 
 	}
 
-	c.logger.Debug("time to process perfman for vm", "duration_seconds", time.Since(begin).Seconds())
+	c.logger.Debug("msg", fmt.Sprintf("Time to process PerfMan for VM: %f\n", time.Since(begin).Seconds()), nil)
 
 	return nil
 }
