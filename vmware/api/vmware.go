@@ -10,12 +10,15 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/prezhdarov/prometheus-exporter/pkg/collector"
 
 	"github.com/vmware/govmomi/performance"
 	"github.com/vmware/govmomi/session/cache"
+	"github.com/vmware/govmomi/vapi/rest"
+	"github.com/vmware/govmomi/vapi/tags"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/soap"
@@ -89,6 +92,12 @@ func (vm *VMware) Login(target string, logger *slog.Logger) (map[string]interfac
 }
 
 func (vm *VMware) Logout(loginData map[string]interface{}, logger *slog.Logger) error {
+
+	if restClient, ok := loginData["rest"].(*rest.Client); ok {
+		if err := restClient.Logout(loginData["ctx"].(context.Context)); err != nil {
+			logger.Debug("rest logout failed", "target", loginData["target"], "err", err)
+		}
+	}
 
 	/*
 		url := fmt.Sprintf("%s://%s/api/session", *vmwSchema, loginData["target"].(string))
@@ -248,5 +257,32 @@ func govmomiLogin(loginData map[string]interface{}) error {
 	loginData["interval"] = int32(*vmwInterval)
 	loginData["samples"] = int32(*vmwInterval / *vmGranularity)
 
+	//Tags live behind the vAPI REST endpoint, which needs its own session on top of the SOAP one
+	if tagsCollectorEnabled() {
+		restClient := rest.NewClient(client)
+
+		if err := restClient.Login(ctx, urlx.User); err != nil {
+			cancel()
+			return fmt.Errorf("rest login err: %s", err)
+		}
+
+		loginData["rest"] = restClient
+		loginData["tags"] = tags.NewManager(restClient)
+	}
+
 	return nil
+}
+
+// tagsCollectorEnabled peeks at the tags collector flag registered in the collectors
+// package, so the REST session is only established when someone will use it
+func tagsCollectorEnabled() bool {
+
+	tagsFlag := flag.Lookup("collector.tags")
+	if tagsFlag == nil {
+		return false
+	}
+
+	enabled, err := strconv.ParseBool(tagsFlag.Value.String())
+
+	return err == nil && enabled
 }
