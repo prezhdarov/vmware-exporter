@@ -8,7 +8,7 @@ require (
 	github.com/prometheus/client_model v0.6.3
 	github.com/prometheus/common v0.71.0
 	github.com/prometheus/exporter-toolkit v0.19.0
-	github.com/vmware/govmomi v0.56.0
+	github.com/vmware/govmomi v0.56.2
 )
 
 require (
